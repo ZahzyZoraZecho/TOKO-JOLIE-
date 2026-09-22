@@ -39,6 +39,8 @@ const modules = [
 
 export default function BusinessOS({ user, onBack }) {
   const [active, setActive] = React.useState("overview");
+  const [access, setAccess] = React.useState(null);
+  const [accessLoading, setAccessLoading] = React.useState(true);
   const [org, setOrg] = React.useState(null);
   const [products, setProducts] = React.useState([]);
   const [orders, setOrders] = React.useState([]);
@@ -56,22 +58,25 @@ export default function BusinessOS({ user, onBack }) {
       return;
     }
     setRefreshing(true);
+    setAccessLoading(true);
     const nextErrors = [];
 
-    const { data: organization, error: orgError } = await supabase
-      .from("organizations")
-      .select("id,name,slug")
-      .eq("slug", ORG_SLUG)
-      .single();
-
-    if (orgError || !organization) {
-      nextErrors.push("Organisasi JOLIE tidak dapat dibaca oleh akun ini.");
+    const { data: accessRows, error: accessError } = await supabase.rpc("jolie_my_access");
+    const myAccess = accessRows?.[0] || null;
+    if (accessError || !myAccess) {
+      setAccess(null);
+      setOrg(null);
+      setProducts([]); setOrders([]); setCustomers([]); setInventory([]); setPurchaseOrders([]);
+      nextErrors.push("Akun ini belum memiliki role staff JOLIE Business OS.");
       setErrors(nextErrors);
       setLoading(false);
       setRefreshing(false);
+      setAccessLoading(false);
       return;
     }
 
+    setAccess(myAccess);
+    const organization = { id: myAccess.organization_id, name: myAccess.organization_name, slug: ORG_SLUG };
     setOrg(organization);
 
     const [
@@ -121,6 +126,7 @@ export default function BusinessOS({ user, onBack }) {
     setLastSync(new Date());
     setLoading(false);
     setRefreshing(false);
+    setAccessLoading(false);
   }, [user]);
 
   React.useEffect(() => {
@@ -133,8 +139,19 @@ export default function BusinessOS({ user, onBack }) {
   const paidTotal = paidOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
   const outOfStock = products.filter(p => p.is_active && Number(p.stock_qty) <= 0).length;
   const stockTracked = products.filter(p => p.stock_qty !== null && p.stock_qty !== undefined).length;
-  const inventoryAccess = inventory.length > 0;
-  const procurementAccess = purchaseOrders.length > 0;
+  const role = access?.role || null;
+  const inventoryAccess = ["owner","admin","manager","inventory"].includes(role);
+  const procurementAccess = ["owner","admin","manager","procurement","finance"].includes(role);
+  const visibleModules = modules.filter(m => {
+    if (!role) return false;
+    if (["owner","admin","manager"].includes(role)) return true;
+    if (role === "sales") return ["overview","sales","ai"].includes(m.id);
+    if (role === "inventory") return ["overview","inventory","ai"].includes(m.id);
+    if (role === "procurement") return ["overview","procurement","ai"].includes(m.id);
+    if (role === "finance") return ["overview","sales","finance","ai"].includes(m.id);
+    if (role === "crm") return ["overview","crm","ai"].includes(m.id);
+    return m.id === "overview";
+  });
   const dataCoverage = [
     products.length > 0,
     orders.length > 0,
@@ -152,8 +169,8 @@ export default function BusinessOS({ user, onBack }) {
     ai: { title: "AI Business Advisor", subtitle: "Insight berbasis data yang benar-benar tersedia" }
   };
 
-  if (!user) {
-    return <div className="bos-shell"><div className="bos-gate"><LockKeyhole size={42}/><h1>JOLIE Business OS</h1><p>Business OS membutuhkan akun yang sudah login. Data bisnis tidak dibuka untuk pengunjung umum.</p><button onClick={onBack}>Kembali ke JOLIE</button></div></div>;
+  if (!user || accessLoading || !access) {
+    return <div className="bos-shell"><div className="bos-gate"><LockKeyhole size={42}/><h1>JOLIE Business OS</h1><p>{accessLoading ? "Memverifikasi role dan izin bisnis…" : "Akun ini belum terdaftar sebagai staff JOLIE. Data operasional tidak dibuka hanya karena seseorang sudah login."}</p><button onClick={onBack}>Kembali ke JOLIE</button></div></div>;
   }
 
   return <div className="bos-shell">
@@ -184,14 +201,14 @@ export default function BusinessOS({ user, onBack }) {
     `}</style>
 
     <header className="bos-top">
-      <div className="bos-brand"><div className="bos-brand-mark">J</div><div><b>JOLIE Business OS</b><span>{org?.name || "Business Operating System"}</span></div></div>
+      <div className="bos-brand"><div className="bos-brand-mark">J</div><div><b>JOLIE Business OS</b><span>{org?.name || "Business Operating System"} · {role}</span></div></div>
       <div className="bos-top-actions"><button onClick={onBack}><ArrowLeft size={15}/><span>Kembali ke Storefront</span></button><button className="bos-refresh" onClick={loadData} disabled={refreshing}><RefreshCw size={15} className={refreshing ? "bos-spin" : ""}/><span>Refresh Data</span></button></div>
     </header>
 
     <div className="bos-layout">
       <aside className="bos-sidebar">
         <div className="bos-side-label">OPERATING SYSTEM</div>
-        {modules.map(m => { const Icon=m.icon; return <button key={m.id} className={"bos-module "+(active===m.id?"active":"")} onClick={()=>setActive(m.id)}><Icon size={17}/><span>{m.label}</span></button>; })}
+        {visibleModules.map(m => { const Icon=m.icon; return <button key={m.id} className={"bos-module "+(active===m.id?"active":"")} onClick={()=>setActive(m.id)}><Icon size={17}/><span>{m.label}</span></button>; })}
         <div className="bos-side-status"><b>Data Guard</b>Business OS hanya membaca data yang diizinkan Supabase. Modul internal tidak membuka data melalui bypass.</div>
       </aside>
 
@@ -259,7 +276,7 @@ function Overview({ products, orders, salesTotal, paidTotal, paidOrders, pending
 
     <section className="bos-panel" style={{marginTop:12}}><div className="bos-panel-head"><h2>Modul JOLIE Business OS</h2><span>Foundation v1</span></div>
       <div className="bos-module-grid">
-        {modules.slice(1).map(m=>{const Icon=m.icon;return <div className="bos-module-card" key={m.id}><Icon size={20}/><b>{m.label}</b><span>{m.id==="sales"?"Order, pembayaran, fulfillment dan histori.":m.id==="inventory"?"Gudang, stock ledger, opname dan reorder.":m.id==="procurement"?"Supplier, PO, penerimaan dan biaya pembelian.":m.id==="finance"?"Cashflow, margin, rekonsiliasi dan laporan.":m.id==="crm"?"Pelanggan, loyalty, segmentasi dan komunikasi.":"Insight, anomaly detection dan rekomendasi berbasis data."}</span><button onClick={()=>onOpen(m.id)}>Buka Modul</button></div>})}
+        {visibleModules.filter(m=>m.id!=="overview").map(m=>{const Icon=m.icon;return <div className="bos-module-card" key={m.id}><Icon size={20}/><b>{m.label}</b><span>{m.id==="sales"?"Order, pembayaran, fulfillment dan histori.":m.id==="inventory"?"Gudang, stock ledger, opname dan reorder.":m.id==="procurement"?"Supplier, PO, penerimaan dan biaya pembelian.":m.id==="finance"?"Cashflow, margin, rekonsiliasi dan laporan.":m.id==="crm"?"Pelanggan, loyalty, segmentasi dan komunikasi.":"Insight, anomaly detection dan rekomendasi berbasis data."}</span><button onClick={()=>onOpen(m.id)}>Buka Modul</button></div>})}
       </div>
     </section>
   </>;
