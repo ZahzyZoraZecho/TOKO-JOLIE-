@@ -84,7 +84,9 @@ function App() {
     return () => { active = false; };
   }, []);
 
-  const filteredProducts = products.filter(p => {
+  const catalogProducts = products.length ? products : demoCatalog;
+  const isDemoCatalog = products.length === 0;
+  const filteredProducts = catalogProducts.filter(p => {
     const q = query.trim().toLowerCase();
     return !q || p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q);
   });
@@ -104,8 +106,6 @@ function App() {
     setCart(items => items.map(x => x.id === id ? { ...x, quantity: Math.max(0, x.quantity + delta) } : x).filter(x => x.quantity > 0));
   }
 
-  const catalogProducts = products.length ? products : demoCatalog;
-  const isDemoCatalog = products.length === 0;
   const cartCount = cart.reduce((n, x) => n + x.quantity, 0);
   const cartTotal = cart.reduce((n, x) => n + Number(x.price || 0) * x.quantity, 0);
 
