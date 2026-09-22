@@ -1,0 +1,9 @@
+{
+  "name":"JOLIE — Toko Pakan Jolie Gebang",
+  "short_name":"JOLIE",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#ffffff",
+  "theme_color":"#08764d",
+  "description":"Pakan dan kebutuhan ternak JOLIE."
+}
