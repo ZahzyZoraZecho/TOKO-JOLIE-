@@ -62,6 +62,7 @@ begin
  select id into v_org from public.organizations where slug='jolie-toko-pakan-jolie-gebang' limit 1;
  if v_org is null then raise exception 'ORGANIZATION_NOT_FOUND'; end if;
  if not private.jolie_has_role(v_org,array['owner','admin','manager','sales']) then raise exception 'POS_ACCESS_DENIED'; end if;
+ if p_customer_id is not null and not exists(select 1 from public.customers c where c.id=p_customer_id and c.organization_id=v_org) then raise exception 'INVALID_CUSTOMER'; end if;
  if jsonb_typeof(p_items)<>'array' or jsonb_array_length(p_items)=0 then raise exception 'EMPTY_CART'; end if;
  if p_payment_method not in ('cash','qris','bank_transfer','virtual_account','e_wallet','edc','other') then raise exception 'INVALID_PAYMENT_METHOD'; end if;
  if exists(select 1 from public.payment_transactions where organization_id=v_org and idempotency_key=v_key) then
