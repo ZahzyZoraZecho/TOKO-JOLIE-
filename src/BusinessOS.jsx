@@ -4,7 +4,7 @@ import {
   Database, LayoutDashboard, PackageCheck, RefreshCw, ShoppingBag, ShieldCheck,
   Truck, Users, WalletCards, AlertTriangle, CheckCircle2, LockKeyhole
 } from "lucide-react";
-import { supabase } from "./lib/supabase";
+import { businessSupabase } from "./lib/supabase";
 
 const ORG_SLUG = "jolie-toko-pakan-jolie-gebang";
 
@@ -70,7 +70,7 @@ export default function BusinessOS({ user, onBack }) {
     setAccessLoading(true);
     const nextErrors = [];
 
-    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: sessionData } = await businessSupabase.auth.getSession();
     if (!sessionData?.session) {
       setAccess(null);
       setOrg(null);
@@ -78,7 +78,7 @@ export default function BusinessOS({ user, onBack }) {
       setLoading(false); setRefreshing(false); setAccessLoading(false);
       return;
     }
-    const { data: accessRows, error: accessError } = await supabase.rpc("jolie_my_access");
+    const { data: accessRows, error: accessError } = await businessSupabase.rpc("jolie_my_access");
     const myAccess = accessRows?.[0] || null;
     if (accessError || !myAccess) {
       setAccess(null);
@@ -103,25 +103,25 @@ export default function BusinessOS({ user, onBack }) {
       inventoryResult,
       purchaseResult
     ] = await Promise.all([
-      supabase.from("products")
+      businessSupabase.from("products")
         .select("id,name,unit,price,stock_qty,is_active,category_id")
         .eq("organization_id", organization.id)
         .order("name"),
-      supabase.from("sales_orders")
+      businessSupabase.from("sales_orders")
         .select("id,order_number,status,payment_status,total,created_at,user_id")
         .eq("organization_id", organization.id)
         .order("created_at", { ascending: false })
         .limit(50),
-      supabase.from("customers")
+      businessSupabase.from("customers")
         .select("id,name,email,phone,created_at")
         .eq("organization_id", organization.id)
         .order("created_at", { ascending: false })
         .limit(100),
-      supabase.from("inventory")
+      businessSupabase.from("inventory")
         .select("id,warehouse_id,product_id,quantity,reserved_quantity,reorder_point")
         .order("updated_at", { ascending: false })
         .limit(200),
-      supabase.from("purchase_orders")
+      businessSupabase.from("purchase_orders")
         .select("id,po_number,status,total,created_at")
         .eq("organization_id", organization.id)
         .order("created_at", { ascending: false })
@@ -149,7 +149,7 @@ export default function BusinessOS({ user, onBack }) {
   React.useEffect(() => {
     let active = true;
     if (!supabase) { setSessionReady(true); return undefined; }
-    supabase.auth.getSession().then(({ data }) => {
+    businessSupabase.auth.getSession().then(({ data }) => {
       if (active) setSessionReady(true);
     });
     return () => { active = false; };
