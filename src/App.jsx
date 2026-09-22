@@ -106,6 +106,19 @@ function App() {
       : await supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
     if (result.error) setAuthMessage(result.error.message);
     else {
+      if (authMode === "signup" && result.data.user) {
+        const uid = result.data.user.id;
+        await supabase.from("profiles").upsert({
+          id: uid,
+          full_name: authName || authEmail.split("@")[0]
+        });
+        await supabase.from("customers").upsert({
+          organization_id: (await supabase.from("organizations").select("id").eq("slug", ORG_SLUG).single()).data?.id,
+          user_id: uid,
+          name: authName || authEmail.split("@")[0],
+          email: authEmail
+        }, { onConflict: "organization_id,user_id" });
+      }
       setAuthMessage(authMode === "login" ? "Berhasil masuk." : "Akun dibuat. Jika email confirmation aktif, cek email Anda.");
       if (authMode === "login") setAuthOpen(false);
     }
