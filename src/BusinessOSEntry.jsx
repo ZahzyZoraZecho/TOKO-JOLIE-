@@ -12,6 +12,8 @@ export default function BusinessOSEntry() {
   const [password, setPassword] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState("");
+  const [mode, setMode] = React.useState("login");
+  const [setupCode, setSetupCode] = React.useState("");
   const [access, setAccess] = React.useState(null);
   const [accessChecking, setAccessChecking] = React.useState(false);
 
@@ -77,6 +79,23 @@ export default function BusinessOSEntry() {
     setBusy(false);
   }
 
+  async function submitSignup(event) {
+    event.preventDefault();
+    if (!businessSupabase) return;
+    setBusy(true);
+    setMessage("");
+    const { data, error } = await businessSupabase.auth.signUp({ email: email.trim(), password });
+    if (error) {
+      setMessage(error.message || "Pembuatan akun staff gagal.");
+    } else if (data?.session) {
+      const boot = await businessSupabase.rpc("jolie_bootstrap_owner", { p_setup_code: setupCode.trim() });
+      if (boot.error) setMessage(boot.error.message || "Bootstrap owner gagal.");
+    } else {
+      setMessage("Akun staff dibuat. Periksa email konfirmasi, lalu login kembali.");
+      setMode("login");
+    }
+    setBusy(false);
+  }
   async function signOut() {
     await businessSupabase?.auth.signOut();
     setAccess(null);
@@ -99,14 +118,17 @@ export default function BusinessOSEntry() {
 
         <div className="bos-login-icon"><LockKeyhole size={25}/></div>
         <div className="bos-eyebrow">STAFF ACCESS</div>
-        <h1>Masuk ke Business OS</h1>
+        <h1>{mode === "login" ? "Masuk ke Business OS" : "Daftarkan akun staff pertama"}</h1>
         <p className="bos-login-copy">Halaman login operasional ini berdiri sendiri dari website toko JOLIE. Akun pelanggan/storefront tidak otomatis masuk ke Business OS.</p>
 
-        <form onSubmit={submitLogin} className="bos-login-form">
+        <form onSubmit={mode === "login" ? submitLogin : submitSignup} className="bos-login-form">
           <label>Email staff<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="staff@jolie..." autoComplete="username" required /></label>
-          <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" autoComplete="current-password" required /></label>
+          <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required /></label>
+          {mode === "signup" && <label>Kode bootstrap awal<input type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} placeholder="Kode setup owner" autoComplete="off" required /></label>}
           {message && <div className="bos-entry-message">{message}</div>}
-          <button className="bos-login-button" disabled={busy}>{busy ? "Memverifikasi…" : <><LogIn size={16}/> Masuk ke Business OS</>}</button>
+          <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : mode === "login" ? <><LogIn size={16}/> Masuk ke Business OS</> : <><ShieldCheck size={16}/> Buat Owner Business OS</>}</button>
+        </form>
+        <button className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
         </form>
 
         <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
