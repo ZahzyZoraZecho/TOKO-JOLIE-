@@ -30,6 +30,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: https://izbnbqjrmrslcqxoyzse.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_4cgxtFMyLoAk8GnMxHOj8w_4Pg0MTXF
+      - name: Prepare SPA fallback for direct routes
+        run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
