@@ -27,3 +27,8 @@ npm run dev
 ## Production direction
 
 The UI is intentionally separated from business data. Product, stock, pricing, orders, customers, authentication, payments, shipping, AI and Business OS will be connected to the dedicated Supabase project without exposing service-role credentials in the browser.
+
+
+## Release verification
+- Production build is verified through GitHub Actions before release.
+- Supabase security advisor is part of the pre-release checklist.
