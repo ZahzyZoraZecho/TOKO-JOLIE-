@@ -108,7 +108,7 @@ function App() {
   const [vetInput, setVetInput] = React.useState({ animal:"", age:"", symptoms:"", duration:"" });
   const [vetMessage, setVetMessage] = React.useState("");
   const [articleOpen, setArticleOpen] = React.useState(null);
-  const [businessOsOpen, setBusinessOsOpen] = React.useState(false);
+  const [businessOsOpen, setBusinessOsOpen] = React.useState(() => window.location.pathname.endsWith("/business-os") || window.location.pathname.endsWith("/business-os/"));
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   React.useEffect(() => {
@@ -150,7 +150,7 @@ function App() {
     return () => { active = false; };
   }, []);
 
-  if (businessOsOpen) return <BusinessOS user={user} onBack={()=>setBusinessOsOpen(false)} />;
+  if (businessOsOpen) return <BusinessOS user={user} onBack={()=>{ window.location.href = "./"; }} />;
 
   const catalogProducts = products.length ? products : demoCatalog;
   const isDemoCatalog = products.length === 0;
@@ -280,7 +280,7 @@ function App() {
           ["Beranda","beranda"],["Produk","produk"],["Layanan","layanan"],["AI Advisor","ai-advisor"],
           ["Artikel & Tips","artikel"],["Tentang Kami","tentang"],["Kontak","kontak"],
           ...(user ? [["Business OS","business-os"]] : [])
-        ].map(([n,id],i)=><a key={n} className={i===0?"active":""} href={"#"+id} onClick={e=>{e.preventDefault();if(id==="business-os"){setBusinessOsOpen(true);return;}scrollTo(id)}}>{n}{n==="Produk"||n==="Layanan"?<ChevronDown size={12}/>:null}</a>)}</nav>
+        ].map(([n,id],i)=><a key={n} className={i===0?"active":""} href={"#"+id} onClick={e=>{e.preventDefault();if(id==="business-os"){window.location.href="./business-os/";return;}scrollTo(id)}}>{n}{n==="Produk"||n==="Layanan"?<ChevronDown size={12}/>:null}</a>)}</nav>
       </div></div>
     </header>
 
