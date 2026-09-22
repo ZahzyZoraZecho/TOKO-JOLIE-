@@ -155,3 +155,16 @@ begin
 end;$$;
 revoke all on function public.jolie_pos_create_sale(jsonb,text,numeric,uuid,text) from public,anon;
 grant execute on function public.jolie_pos_create_sale(jsonb,text,numeric,uuid,text) to authenticated;
+
+-- Foreign-key indexes for the shared operational tables.
+create index if not exists business_audit_actor_idx on public.business_audit_events(actor_id);
+create index if not exists crm_activities_customer_idx on public.crm_activities(customer_id);
+create index if not exists finance_ledger_created_by_idx on public.finance_ledger(created_by);
+create index if not exists purchase_receipts_po_idx on public.purchase_receipts(purchase_order_id);
+create index if not exists purchase_receipts_warehouse_idx on public.purchase_receipts(warehouse_id);
+create index if not exists purchase_receipts_received_by_idx on public.purchase_receipts(received_by);
+alter table public.business_apps enable row level security;
+revoke all on public.business_apps from anon,authenticated;
+grant select on public.business_apps to authenticated;
+drop policy if exists business_apps_authenticated_select on public.business_apps;
+create policy business_apps_authenticated_select on public.business_apps for select to authenticated using(is_active=true);
