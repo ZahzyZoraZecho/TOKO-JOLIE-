@@ -138,6 +138,7 @@ export default function BusinessOSEntry() {
           <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : mode === "login" ? <><LogIn size={16}/> Masuk ke Business OS</> : <><ShieldCheck size={16}/> Buat Owner Business OS</>}</button>
         <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
         {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
+        </form>
 
         <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
         <button className="bos-store-button" onClick={goStorefront}><Store size={16}/> Kembali ke website toko JOLIE</button>
