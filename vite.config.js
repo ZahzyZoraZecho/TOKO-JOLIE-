@@ -5,5 +5,5 @@ export default defineConfig({
   plugins: [react()],
   // Relative asset paths keep the Vite build compatible with GitHub Pages
   // project paths as well as root-domain hosting.
-  base: './',
+  base: '/TOKO-JOLIE-/',
 });
