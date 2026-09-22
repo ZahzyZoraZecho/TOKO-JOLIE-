@@ -14,6 +14,7 @@ export default function BusinessOSEntry() {
   const [message, setMessage] = React.useState("");
   const [mode, setMode] = React.useState("login");
   const [setupCode, setSetupCode] = React.useState("");
+  const [ownerBootstrap, setOwnerBootstrap] = React.useState(false);
   const [access, setAccess] = React.useState(null);
   const [accessChecking, setAccessChecking] = React.useState(false);
 
@@ -73,6 +74,13 @@ export default function BusinessOSEntry() {
       setMessage(error.message || "Login Business OS gagal.");
     } else if (!data?.session) {
       setMessage("Login berhasil tetapi sesi Business OS belum terbentuk. Coba lagi.");
+    } else if (ownerBootstrap && setupCode.trim()) {
+      const boot = await businessSupabase.rpc("jolie_bootstrap_owner", { p_setup_code: setupCode.trim() });
+      if (boot.error) {
+        setMessage(boot.error.message || "Akun berhasil login, tetapi bootstrap owner gagal.");
+      } else {
+        setMessage("Owner Business OS berhasil dibuat. Memuat akses operasional…");
+      }
     } else {
       setMessage("");
     }
@@ -93,6 +101,7 @@ export default function BusinessOSEntry() {
     } else {
       setMessage("Akun staff dibuat. Periksa email konfirmasi, lalu login kembali.");
       setMode("login");
+      setOwnerBootstrap(true);
     }
     setBusy(false);
   }
@@ -124,10 +133,11 @@ export default function BusinessOSEntry() {
         <form onSubmit={mode === "login" ? submitLogin : submitSignup} className="bos-login-form">
           <label>Email staff<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="staff@jolie..." autoComplete="username" required /></label>
           <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required /></label>
-          {mode === "signup" && <label>Kode bootstrap awal<input type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} placeholder="Kode setup owner" autoComplete="off" required /></label>}
+          {(mode === "signup" || ownerBootstrap) && <label>Kode bootstrap awal<input type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} placeholder="Kode setup owner" autoComplete="off" required /></label>}
           {message && <div className="bos-entry-message">{message}</div>}
           <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : mode === "login" ? <><LogIn size={16}/> Masuk ke Business OS</> : <><ShieldCheck size={16}/> Buat Owner Business OS</>}</button>
-        <button className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
+        <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
+        {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
 
         <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
         <button className="bos-store-button" onClick={goStorefront}><Store size={16}/> Kembali ke website toko JOLIE</button>
