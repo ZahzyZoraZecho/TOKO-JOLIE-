@@ -9,6 +9,16 @@ import { supabase } from "./lib/supabase";
 const ORG_SLUG = "jolie-toko-pakan-jolie-gebang";
 const heroImage = "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1800&q=85";
 
+// Temporary visual catalog: open-license reference photos only.
+// These are deliberately not presented as JOLIE-branded products and carry no price/stock.
+const demoCatalog = [
+  { id:"demo-chicken", name:"Contoh Pakan Ayam", unit:"Contoh katalog", image_url:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Biochar_chicken_feed.jpg", license:"CC BY-SA 4.0" },
+  { id:"demo-fish", name:"Contoh Pakan Ikan", unit:"Contoh katalog", image_url:"https://commons.wikimedia.org/wiki/Special:Redirect/file/EPIC_Feed-_Fish_Feed_-_A_Product_of_West_Bengal_Livestock_Development_Corporation_Limited_2020-09-20.jpg", license:"CC BY-SA 4.0" },
+  { id:"demo-livestock", name:"Contoh Pakan Ternak", unit:"Contoh katalog", image_url:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Bag_with_bush-based_animal_fodder_pellets.jpg", license:"CC BY-SA 4.0" },
+  { id:"demo-pellets", name:"Contoh Pellet Ternak", unit:"Contoh katalog", image_url:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Close-up_picture_of_pile_of_wood_bush-based_animal_fodder_pellets_in_Namibia.jpg", license:"CC BY-SA 4.0" },
+  { id:"demo-chicken-feed", name:"Contoh Feed Supplement", unit:"Contoh katalog", image_url:"https://commons.wikimedia.org/wiki/Special:Redirect/file/Chicken_Feed.jpg", license:"CC BY 3.0" }
+];
+
 function money(value) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency", currency: "IDR", maximumFractionDigits: 0
@@ -94,6 +104,8 @@ function App() {
     setCart(items => items.map(x => x.id === id ? { ...x, quantity: Math.max(0, x.quantity + delta) } : x).filter(x => x.quantity > 0));
   }
 
+  const catalogProducts = products.length ? products : demoCatalog;
+  const isDemoCatalog = products.length === 0;
   const cartCount = cart.reduce((n, x) => n + x.quantity, 0);
   const cartTotal = cart.reduce((n, x) => n + Number(x.price || 0) * x.quantity, 0);
 
@@ -175,7 +187,7 @@ function App() {
 
         <section className="products-section" id="produk"><div className="section-heading"><div className="heading-tabs"><h2>Produk Pilihan</h2><button className="pill active">Terbaru</button></div><a href="#produk">Lihat Semua <ArrowRight size={15}/></a></div>
           {loading ? <div className="catalog-state">Memuat katalog JOLIE…</div> :
-          filteredProducts.length ? <div className="product-grid">{filteredProducts.slice(0,5).map(p=><article className="product-card" key={p.id}>
+          filteredProducts.length ? <><div className="product-grid">{filteredProducts.slice(0,5).map(p=><article className="product-card" key={p.id}>
             {p.compare_at_price && p.compare_at_price > p.price && <span className="product-tag promo">Promo</span>}
             <div className="product-image">{p.image_url ? <img src={p.image_url} alt={p.name}/> : <div className="product-image-placeholder">JOLIE</div>}</div>
             <h3>{p.name}</h3><small>{p.unit || "Satuan belum diatur"}</small>
@@ -183,7 +195,8 @@ function App() {
             <strong>{p.price == null ? "Harga belum diatur" : money(p.price)}</strong>
             <button onClick={()=>addToCart(p)} disabled={p.price == null || Number(p.stock_qty) <= 0}><ShoppingCart size={15}/> {Number(p.stock_qty) <= 0 ? "Stok Habis" : "Tambah ke Keranjang"}</button>
           </article>)}</div>
-          : <div className="catalog-state"><b>Katalog sedang disiapkan.</b><span>{catalogError || "Belum ada produk aktif di database JOLIE."}</span></div>}
+          {isDemoCatalog && <div className="catalog-attribution">Foto contoh berasal dari Wikimedia Commons dan digunakan sesuai lisensi yang tercantum. Ini hanya materi visual sementara, bukan foto produk JOLIE.</div>}</> :
+          <div className="catalog-state"><b>Katalog sedang disiapkan.</b><span>{catalogError || "Belum ada produk aktif di database JOLIE."}</span></div>}
         </section>
 
         <section className="service-strip"><div><Truck/><b>Pengiriman Cepat</b><span>Pesanan diproses dengan teratur.</span></div><div><ShieldCheck/><b>Pembayaran Aman</b><span>Pilihan pembayaran akan terintegrasi.</span></div><div><Headphones/><b>Layanan Konsultasi</b><span>Tim JOLIE siap membantu.</span></div><div><Home/><b>Produk Berkualitas</b><span>Katalog dikelola dari data bisnis.</span></div></section>
