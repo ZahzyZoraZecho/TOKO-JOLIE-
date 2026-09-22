@@ -5,6 +5,7 @@ import {
   LogOut, Minus, Plus
 } from "lucide-react";
 import { supabase } from "./lib/supabase";
+import BusinessOS from "./BusinessOS";
 
 const ORG_SLUG = "jolie-toko-pakan-jolie-gebang";
 const heroImage = "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1800&q=85";
@@ -107,6 +108,7 @@ function App() {
   const [vetInput, setVetInput] = React.useState({ animal:"", age:"", symptoms:"", duration:"" });
   const [vetMessage, setVetMessage] = React.useState("");
   const [articleOpen, setArticleOpen] = React.useState(null);
+  const [businessOsOpen, setBusinessOsOpen] = React.useState(false);
   const scrollTo = id => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   React.useEffect(() => {
@@ -147,6 +149,8 @@ function App() {
     }
     return () => { active = false; };
   }, []);
+
+  if (businessOsOpen) return <BusinessOS user={user} onBack={()=>setBusinessOsOpen(false)} />;
 
   const catalogProducts = products.length ? products : demoCatalog;
   const isDemoCatalog = products.length === 0;
@@ -274,7 +278,8 @@ function App() {
         <button className="category-btn" onClick={()=>scrollTo("kategori")}><Menu size={18}/> Semua Kategori <ChevronDown size={16}/></button>
         <nav>{[
           ["Beranda","beranda"],["Produk","produk"],["Layanan","layanan"],["AI Advisor","ai-advisor"],
-          ["Artikel & Tips","artikel"],["Tentang Kami","tentang"],["Kontak","kontak"]
+          ["Artikel & Tips","artikel"],["Tentang Kami","tentang"],["Kontak","kontak"],
+          ...(user ? [["Business OS","business-os"]] : [])
         ].map(([n,id],i)=><a key={n} className={i===0?"active":""} href={"#"+id} onClick={e=>{e.preventDefault();scrollTo(id)}}>{n}{n==="Produk"||n==="Layanan"?<ChevronDown size={12}/>:null}</a>)}</nav>
       </div></div>
     </header>
