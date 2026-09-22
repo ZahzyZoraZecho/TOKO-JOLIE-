@@ -17,6 +17,7 @@ export default function BusinessOSEntry() {
   const [ownerBootstrap, setOwnerBootstrap] = React.useState(false);
   const [access, setAccess] = React.useState(null);
   const [accessChecking, setAccessChecking] = React.useState(false);
+  const [pendingConfirmation, setPendingConfirmation] = React.useState(false);
 
   const loadSession = React.useCallback(async () => {
     if (!businessSupabase) {
@@ -61,6 +62,20 @@ export default function BusinessOSEntry() {
     return () => { cancelled = true; };
   }, [session]);
 
+  async function resendConfirmation() {
+    if (!businessSupabase || !email.trim()) return;
+    setBusy(true);
+    setMessage("");
+    const { error } = await businessSupabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: { emailRedirectTo: "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/" }
+    });
+    setMessage(error ? (error.message || "Email konfirmasi belum dapat dikirim ulang.") : "Email konfirmasi dikirim ulang. Periksa Inbox, Spam, atau Promosi email pemilik akun.");
+    setPendingConfirmation(!error);
+    setBusy(false);
+  }
+
   async function submitLogin(event) {
     event.preventDefault();
     if (!businessSupabase) return;
@@ -92,7 +107,7 @@ export default function BusinessOSEntry() {
     if (!businessSupabase) return;
     setBusy(true);
     setMessage("");
-    const { data, error } = await businessSupabase.auth.signUp({ email: email.trim(), password });
+    const { data, error } = await businessSupabase.auth.signUp({\n      email: email.trim(),\n      password,\n      options: { emailRedirectTo: "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/" }\n    });
     if (error) {
       setMessage(error.message || "Pembuatan akun staff gagal.");
     } else if (data?.session) {
@@ -136,8 +151,8 @@ export default function BusinessOSEntry() {
           {(mode === "signup" || ownerBootstrap) && <label>Kode bootstrap awal<input type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} placeholder="Kode setup owner" autoComplete="off" required /></label>}
           {message && <div className="bos-entry-message">{message}</div>}
           <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : mode === "login" ? <><LogIn size={16}/> Masuk ke Business OS</> : <><ShieldCheck size={16}/> Buat Owner Business OS</>}</button>
-        <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
-        {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
+        <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setPendingConfirmation(false);setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
+        {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setPendingConfirmation(false);setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
         </form>
 
         <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
