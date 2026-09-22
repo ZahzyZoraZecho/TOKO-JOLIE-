@@ -54,7 +54,7 @@ export default function BusinessOS({ user, onBack }) {
   const [lastSync, setLastSync] = React.useState(null);
 
   const loadData = React.useCallback(async () => {
-    if (!supabase) {
+    if (!businessSupabase) {
       setLoading(false);
       setAccessLoading(false);
       return;
@@ -148,7 +148,7 @@ export default function BusinessOS({ user, onBack }) {
 
   React.useEffect(() => {
     let active = true;
-    if (!supabase) { setSessionReady(true); return undefined; }
+    if (!businessSupabase) { setSessionReady(true); return undefined; }
     businessSupabase.auth.getSession().then(({ data }) => {
       if (active) setSessionReady(true);
     });
