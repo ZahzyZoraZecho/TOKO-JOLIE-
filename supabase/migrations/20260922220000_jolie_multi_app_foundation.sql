@@ -168,3 +168,31 @@ revoke all on public.business_apps from anon,authenticated;
 grant select on public.business_apps to authenticated;
 drop policy if exists business_apps_authenticated_select on public.business_apps;
 create policy business_apps_authenticated_select on public.business_apps for select to authenticated using(is_active=true);
+
+-- POS is allowed to write the sale ledger, while the sensitive stock mutation stays in a private security-definer helper.
+drop policy if exists finance_ledger_staff_insert on public.finance_ledger;
+create policy finance_ledger_staff_insert on public.finance_ledger for insert to authenticated
+with check (
+  (
+    (select private.jolie_has_role(organization_id,array['owner','admin','manager','finance']))
+    or (entry_type='sale' and (select private.jolie_has_role(organization_id,array['owner','admin','manager','sales'])))
+  )
+  and created_by=(select auth.uid())
+);
+
+create or replace function private.jolie_pos_apply_inventory(p_org uuid,p_product_id uuid,p_warehouse_id uuid,p_qty numeric,p_order_id uuid)
+returns void language plpgsql security definer set search_path='' as $$
+declare v_uid uuid := (select auth.uid()); v_inv public.inventory%rowtype;
+begin
+ if v_uid is null or not private.jolie_has_role(p_org,array['owner','admin','manager','sales']) then raise exception 'POS_INVENTORY_ACCESS_DENIED'; end if;
+ if p_qty<=0 then raise exception 'INVALID_STOCK_QTY'; end if;
+ select * into v_inv from public.inventory where organization_id=p_org and warehouse_id=p_warehouse_id and product_id=p_product_id for update;
+ if not found then raise exception 'INVENTORY_ROW_NOT_FOUND'; end if;
+ if v_inv.quantity<p_qty then raise exception 'INSUFFICIENT_INVENTORY'; end if;
+ update public.inventory set quantity=quantity-p_qty,updated_at=now() where id=v_inv.id;
+ insert into public.inventory_movements(organization_id,warehouse_id,product_id,movement_type,quantity_delta,reference_type,reference_id,note,created_by)
+ values(p_org,p_warehouse_id,p_product_id,'sale',-p_qty,'sales_order',p_order_id,'POS sale',v_uid);
+end; $$;
+revoke all on function private.jolie_pos_apply_inventory(uuid,uuid,uuid,numeric,uuid) from public,anon;
+grant usage on schema private to authenticated;
+grant execute on function private.jolie_pos_apply_inventory(uuid,uuid,uuid,numeric,uuid) to authenticated;
