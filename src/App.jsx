@@ -279,7 +279,7 @@ function App() {
         <nav>{[
           ["Beranda","beranda"],["Produk","produk"],["Layanan","layanan"],["AI Advisor","ai-advisor"],
           ["Artikel & Tips","artikel"],["Tentang Kami","tentang"],["Kontak","kontak"],
-          ...(user ? [["Business OS","business-os"]] : [])
+          ["Business OS","business-os"]
         ].map(([n,id],i)=><a key={n} className={i===0?"active":""} href={"#"+id} onClick={e=>{e.preventDefault();if(id==="business-os"){window.location.href="./business-os/";return;}scrollTo(id)}}>{n}{n==="Produk"||n==="Layanan"?<ChevronDown size={12}/>:null}</a>)}</nav>
       </div></div>
     </header>
