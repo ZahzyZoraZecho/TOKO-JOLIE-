@@ -15,7 +15,9 @@ const TYPES = [
 
 function money(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v||0));}
 
-function BarcodePreview({value}){const ref=React.useRef(null);React.useEffect(()=>{if(ref.current&&value)try{JsBarcode(ref.current,value,{format:"CODE128",displayValue:true,height:48,margin:6,width:2})}catch(e){ref.current.innerHTML=""}},[value]);return <svg ref={ref} style={{width:"100%",background:"#fff",marginTop:8}}/>}\n\nexport default function IntegrationHub({onBack}){
+function BarcodePreview({value}){const ref=React.useRef(null);React.useEffect(()=>{if(ref.current&&value)try{JsBarcode(ref.current,value,{format:"CODE128",displayValue:true,height:48,margin:6,width:2})}catch(e){ref.current.innerHTML=""}},[value]);return <svg ref={ref} style={{width:"100%",background:"#fff",marginTop:8}}/>}
+
+export default function IntegrationHub({onBack}){
   const [access,setAccess]=React.useState(null),[devices,setDevices]=React.useState([]),[jobs,setJobs]=React.useState([]),[adapters,setAdapters]=React.useState([]),[ppob,setPpob]=React.useState([]),[products,setProducts]=React.useState([]);
   const [busy,setBusy]=React.useState(true),[msg,setMsg]=React.useState(""),[scan,setScan]=React.useState(""),[device,setDevice]=React.useState({type:"barcode_scanner",name:"",code:"",connection:"usb"});
   const load=React.useCallback(async()=>{
