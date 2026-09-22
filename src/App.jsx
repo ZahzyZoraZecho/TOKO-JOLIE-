@@ -1,7 +1,8 @@
 import React from "react";
 import {
   Search, MapPin, UserRound, ShoppingCart, Menu, ChevronDown, ArrowRight,
-  Truck, ShieldCheck, Headphones, Home, Sparkles, MessageCircle, Send, X
+  Truck, ShieldCheck, Headphones, Home, Sparkles, MessageCircle, Send, X,
+  LogOut, Minus, Plus
 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 
@@ -9,7 +10,9 @@ const ORG_SLUG = "jolie-toko-pakan-jolie-gebang";
 const heroImage = "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&w=1800&q=85";
 
 function money(value) {
-  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(value ?? 0);
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency", currency: "IDR", maximumFractionDigits: 0
+  }).format(value ?? 0);
 }
 
 function App() {
@@ -18,26 +21,41 @@ function App() {
   const [products, setProducts] = React.useState([]);
   const [cart, setCart] = React.useState([]);
   const [query, setQuery] = React.useState("");
-  const [chatOpen, setChatOpen] = React.useState(true);
   const [loading, setLoading] = React.useState(true);
   const [catalogError, setCatalogError] = React.useState("");
+  const [user, setUser] = React.useState(null);
+  const [authOpen, setAuthOpen] = React.useState(false);
+  const [cartOpen, setCartOpen] = React.useState(false);
+  const [authMode, setAuthMode] = React.useState("login");
+  const [authEmail, setAuthEmail] = React.useState("");
+  const [authPassword, setAuthPassword] = React.useState("");
+  const [authName, setAuthName] = React.useState("");
+  const [authBusy, setAuthBusy] = React.useState(false);
+  const [authMessage, setAuthMessage] = React.useState("");
+  const [orderMessage, setOrderMessage] = React.useState("");
+  const [chatOpen, setChatOpen] = React.useState(true);
 
   React.useEffect(() => {
     let active = true;
-    async function loadCatalog() {
+    async function load() {
       if (!supabase) {
-        setCatalogError("Supabase belum dikonfigurasi. Tambahkan VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY.");
+        setCatalogError("Supabase belum dikonfigurasi.");
         setLoading(false);
         return;
       }
-      const { data: org, error: orgError } = await supabase.from("organizations").select("id,name,slug").eq("slug", ORG_SLUG).single();
+      const { data: org, error: orgError } = await supabase
+        .from("organizations").select("id,name,slug").eq("slug", ORG_SLUG).single();
       if (orgError) {
         if (active) { setCatalogError(orgError.message); setLoading(false); }
         return;
       }
       const [{ data: cats, error: catError }, { data: prods, error: prodError }] = await Promise.all([
-        supabase.from("product_categories").select("id,name,slug,icon,sort_order").eq("organization_id", org.id).eq("is_active", true).order("sort_order"),
-        supabase.from("products").select("id,name,slug,description,image_url,unit,price,compare_at_price,is_featured,category_id").eq("organization_id", org.id).eq("is_active", true).order("created_at", { ascending: false })
+        supabase.from("product_categories")
+          .select("id,name,slug,icon,sort_order")
+          .eq("organization_id", org.id).eq("is_active", true).order("sort_order"),
+        supabase.from("products")
+          .select("id,name,slug,description,image_url,unit,price,compare_at_price,is_featured,stock_qty,category_id")
+          .eq("organization_id", org.id).eq("is_active", true).order("created_at", { ascending: false })
       ]);
       if (active) {
         setOrganization(org);
@@ -47,7 +65,12 @@ function App() {
         setLoading(false);
       }
     }
-    loadCatalog();
+    load();
+    if (supabase) {
+      supabase.auth.getUser().then(({ data }) => setUser(data.user || null));
+      const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => setUser(session?.user || null));
+      return () => { active = false; listener.subscription.unsubscribe(); };
+    }
     return () => { active = false; };
   }, []);
 
@@ -56,8 +79,55 @@ function App() {
     return !q || p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q);
   });
 
-  const addToCart = product => setCart(items => [...items, product]);
-  const featured = filteredProducts.slice(0, 5);
+  function addToCart(product) {
+    if (product.price == null) return;
+    setCart(items => {
+      const found = items.find(x => x.id === product.id);
+      return found
+        ? items.map(x => x.id === product.id ? { ...x, quantity: x.quantity + 1 } : x)
+        : [...items, { ...product, quantity: 1 }];
+    });
+    setCartOpen(true);
+  }
+
+  function changeQty(id, delta) {
+    setCart(items => items.map(x => x.id === id ? { ...x, quantity: Math.max(0, x.quantity + delta) } : x).filter(x => x.quantity > 0));
+  }
+
+  const cartCount = cart.reduce((n, x) => n + x.quantity, 0);
+  const cartTotal = cart.reduce((n, x) => n + Number(x.price || 0) * x.quantity, 0);
+
+  async function submitAuth(e) {
+    e.preventDefault();
+    if (!supabase) return;
+    setAuthBusy(true); setAuthMessage("");
+    const result = authMode === "login"
+      ? await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
+      : await supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
+    if (result.error) setAuthMessage(result.error.message);
+    else {
+      setAuthMessage(authMode === "login" ? "Berhasil masuk." : "Akun dibuat. Jika email confirmation aktif, cek email Anda.");
+      if (authMode === "login") setAuthOpen(false);
+    }
+    setAuthBusy(false);
+  }
+
+  async function signOut() {
+    await supabase?.auth.signOut();
+    setAuthOpen(false);
+  }
+
+  async function checkout() {
+    setOrderMessage("");
+    if (!user) { setAuthMode("login"); setAuthOpen(true); setOrderMessage("Silakan login sebelum membuat pesanan."); return; }
+    if (!cart.length) return;
+    setOrderMessage("Memproses pesanan...");
+    const items = cart.map(x => ({ product_id: x.id, quantity: x.quantity }));
+    const { data, error } = await supabase.rpc("create_jolie_order", { p_items: items });
+    if (error) { setOrderMessage(error.message); return; }
+    setCart([]);
+    setOrderMessage("Pesanan berhasil dibuat: " + (data?.order_number || data?.id || "tersimpan"));
+  }
 
   return <div className="app-shell">
     <header className="top-header">
@@ -65,8 +135,8 @@ function App() {
         <div className="brand"><div className="brand-mark">🌿</div><div><strong>JOLIE</strong><span>Pakan & Kebutuhan Ternak</span></div></div>
         <div className="search-box"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Cari produk, kategori, atau kebutuhan ternak..."/><button aria-label="Cari"><Search size={17}/></button></div>
         <div className="header-action"><MapPin size={18}/><div><b>Lokasi Toko</b><span>Jalan Raya Taji–Tinggang</span></div></div>
-        <div className="header-action account"><UserRound size={18}/><div><b>Login / Daftar</b><span>Akun Saya</span></div></div>
-        <div className="header-cart"><ShoppingCart/><span className="cart-badge">{cart.length}</span><div><b>Keranjang</b><small>{cart.length} item</small></div></div>
+        <button className="header-action account" onClick={()=>setAuthOpen(true)}><UserRound size={18}/><div><b>{user ? "Akun Saya" : "Login / Daftar"}</b><span>{user?.email || "Masuk ke JOLIE"}</span></div></button>
+        <button className="header-cart" onClick={()=>setCartOpen(true)}><ShoppingCart/><span className="cart-badge">{cartCount}</span><div><b>Keranjang</b><small>{cartCount} item</small></div></button>
       </div>
       <div className="nav-row"><div className="container nav-inner">
         <button className="category-btn"><Menu size={18}/> Semua Kategori <ChevronDown size={16}/></button>
@@ -91,13 +161,13 @@ function App() {
 
         <section className="products-section" id="produk"><div className="section-heading"><div className="heading-tabs"><h2>Produk Pilihan</h2><button className="pill active">Terbaru</button></div><a href="#produk">Lihat Semua <ArrowRight size={15}/></a></div>
           {loading ? <div className="catalog-state">Memuat katalog JOLIE…</div> :
-          filteredProducts.length ? <div className="product-grid">{featured.map(p=><article className="product-card" key={p.id}>
+          filteredProducts.length ? <div className="product-grid">{filteredProducts.slice(0,5).map(p=><article className="product-card" key={p.id}>
             {p.compare_at_price && p.compare_at_price > p.price && <span className="product-tag promo">Promo</span>}
             <div className="product-image">{p.image_url ? <img src={p.image_url} alt={p.name}/> : <div className="product-image-placeholder">JOLIE</div>}</div>
             <h3>{p.name}</h3><small>{p.unit || "Satuan belum diatur"}</small>
             <div className="rating"><span>★★★★★</span></div>
             <strong>{p.price == null ? "Harga belum diatur" : money(p.price)}</strong>
-            <button onClick={()=>addToCart(p)} disabled={p.price == null}><ShoppingCart size={15}/> Tambah ke Keranjang</button>
+            <button onClick={()=>addToCart(p)} disabled={p.price == null || Number(p.stock_qty) <= 0}><ShoppingCart size={15}/> {Number(p.stock_qty) <= 0 ? "Stok Habis" : "Tambah ke Keranjang"}</button>
           </article>)}</div>
           : <div className="catalog-state"><b>Katalog sedang disiapkan.</b><span>{catalogError || "Belum ada produk aktif di database JOLIE."}</span></div>}
         </section>
@@ -112,16 +182,39 @@ function App() {
           <div className="chat-input"><input placeholder="Tulis pesan Anda..."/><button onClick={()=>setChatOpen(!chatOpen)}><Send size={15}/></button></div>
         </div>
         <div className="vet-card"><span className="premium">PREMIUM</span><Sparkles size={22}/><h3>Dokter Hewan Virtual</h3><p>Konsultasi informasi kesehatan ternak dengan guardrail keselamatan dan rujukan profesional.</p><button>Mulai Konsultasi <ArrowRight size={15}/></button></div>
-        <div className="register-card"><div><h3>Jadi Pelanggan Terdaftar</h3><p>Pesanan, profil, alamat, dan loyalty akan tersimpan aman setelah login.</p><button>Daftar Sekarang</button></div><span>👨🏻‍🌾</span></div>
+        <div className="register-card"><div><h3>{user ? "Anda sudah terdaftar" : "Jadi Pelanggan Terdaftar"}</h3><p>Pesanan, profil, alamat, dan loyalty akan tersimpan aman setelah login.</p><button onClick={()=>user?signOut():(setAuthMode("signup"),setAuthOpen(true))}>{user ? "Keluar" : "Daftar Sekarang"}</button></div><span>👨🏻‍🌾</span></div>
         <div className="tips-card"><div className="section-heading"><h3>Info & Tips Terbaru</h3><a href="#artikel">Lihat Semua <ArrowRight size={13}/></a></div><article><div className="tip-placeholder">JOLIE</div><div><b>Artikel dan tips akan terhubung ke Content & SEO Engine.</b><span>Belum ada artikel</span></div></article></div>
       </aside>
     </main>
 
-    <footer className="mobile-preview"><div className="phone"><div className="phone-notch"/><div className="phone-header"><b>🌿 JOLIE</b><span>♡ 🛒</span></div><div className="phone-search"><Search size={12}/> Cari produk, kategori...</div><div className="phone-hero"><img src={heroImage} alt=""/><div><small>JOLIE · Kebutuhan Ternak</small><b>Pakan Berkualitas<br/>untuk Hasil Maksimal</b><button>Belanja Sekarang →</button></div></div><div className="phone-cats">{categories.slice(0,4).map(c=><span key={c.id}>{c.icon || "•"}<small>{c.name}</small></span>)}</div><h4>Produk Pilihan</h4>{products[0] ? <div className="phone-product"><img src={products[0].image_url || heroImage}/><div><b>{products[0].name}</b><small>{products[0].unit || ""}</small><strong>{products[0].price == null ? "Harga belum diatur" : money(products[0].price)}</strong><button onClick={()=>addToCart(products[0])}>Tambah</button></div></div> : <div className="phone-product"><div className="product-image-placeholder">Katalog JOLIE</div></div>}<div className="phone-nav"><span>⌂<small>Beranda</small></span><span>▦<small>Kategori</small></span><span>🛒<small>Keranjang</small></span><span>♙<small>Akun</small></span></div></div>
-      <div className="preview-copy"><h3>Tampilan Mobile (Preview)</h3><p>JOLIE responsive-first: website dan PWA memakai design system yang sama.</p><ul>{["Desain modern & responsif","Katalog produk real dari Supabase","AI Companion","AI Veterinary Assistant","Keranjang & checkout","Pembayaran & kurir","Manajemen stok & pesanan","Dashboard Business OS","POS & perangkat","Market Radar","Blog & SEO","Mudah dikustomisasi di AKVISIO"].map(x=><li key={x}><span>✓</span>{x}</li>)}</ul><div className="tagline">Bersama JOLIE<br/><b>Tumbuh Lebih Baik</b> 🌿</div></div>
-    </footer>
+    <footer className="mobile-preview"><div className="phone"><div className="phone-notch"/><div className="phone-header"><b>🌿 JOLIE</b><span>♡ 🛒</span></div><div className="phone-search"><Search size={12}/> Cari produk, kategori...</div><div className="phone-hero"><img src={heroImage} alt=""/><div><small>JOLIE · Kebutuhan Ternak</small><b>Pakan Berkualitas<br/>untuk Hasil Maksimal</b><button>Belanja Sekarang →</button></div></div><div className="phone-cats">{categories.slice(0,4).map(c=><span key={c.id}>{c.icon || "•"}<small>{c.name}</small></span>)}</div><h4>Produk Pilihan</h4>{products[0] ? <div className="phone-product"><img src={products[0].image_url || heroImage} alt=""/><div><b>{products[0].name}</b><small>{products[0].unit || ""}</small><strong>{products[0].price == null ? "Harga belum diatur" : money(products[0].price)}</strong><button onClick={()=>addToCart(products[0])}>Tambah</button></div></div> : <div className="phone-product"><div className="product-image-placeholder">Katalog JOLIE</div></div>}<div className="phone-nav"><span>⌂<small>Beranda</small></span><span>▦<small>Kategori</small></span><span onClick={()=>setCartOpen(true)}>🛒<small>Keranjang</small></span><span onClick={()=>setAuthOpen(true)}>♙<small>Akun</small></span></div></div>
+      <div className="preview-copy"><h3>Tampilan Mobile (Preview)</h3><p>JOLIE responsive-first: website dan PWA memakai design system yang sama.</p><ul>{["Desain modern & responsif","Katalog produk real dari Supabase","AI Companion","AI Veterinary Assistant","Keranjang & checkout","Pembayaran & kurir","Manajemen stok & pesanan","Dashboard Business OS","POS & perangkat","Market Radar","Blog & SEO","Mudah dikustomisasi di AKVISIO"].map(x=><li key={x}><span>✓</span>{x}</li>)}</ul><div className="tagline">Bersama JOLIE<br/><b>Tumbuh Lebih Baik</b> 🌿</div></div></footer>
+
     <div className="floating-chat" onClick={()=>setChatOpen(v=>!v)}><MessageCircle/></div>
     {chatOpen && <div className="toast-chat"><b>JOLIE AI Companion</b><span>Butuh bantuan memilih pakan?</span><button onClick={()=>setChatOpen(false)}><X size={14}/></button></div>}
+
+    {authOpen && <div className="modal-backdrop" onClick={()=>setAuthOpen(false)}><div className="modal-card" onClick={e=>e.stopPropagation()}>
+      <button className="modal-close" onClick={()=>setAuthOpen(false)}><X size={18}/></button>
+      <div className="brand modal-brand"><div className="brand-mark">🌿</div><div><strong>JOLIE</strong><span>Pelanggan</span></div></div>
+      <h2>{authMode === "login" ? "Masuk ke JOLIE" : "Buat Akun JOLIE"}</h2>
+      <p className="modal-sub">{authMode === "login" ? "Kelola pesanan dan profil Anda." : "Daftar untuk menyimpan pesanan dan profil."}</p>
+      <form onSubmit={submitAuth}>
+        {authMode === "signup" && <input className="modal-input" value={authName} onChange={e=>setAuthName(e.target.value)} placeholder="Nama lengkap" required/>}
+        <input className="modal-input" type="email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" required/>
+        <input className="modal-input" type="password" minLength={6} value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder="Password" required/>
+        {authMessage && <div className="modal-message">{authMessage}</div>}
+        <button className="modal-primary" disabled={authBusy}>{authBusy ? "Memproses..." : authMode === "login" ? "Masuk" : "Daftar"}</button>
+      </form>
+      {user && <button className="modal-secondary" onClick={signOut}><LogOut size={15}/> Keluar</button>}
+      <button className="modal-switch" onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthMessage("");}}>{authMode==="login"?"Belum punya akun? Daftar":"Sudah punya akun? Masuk"}</button>
+    </div></div>}
+
+    {cartOpen && <div className="drawer-backdrop" onClick={()=>setCartOpen(false)}><aside className="cart-drawer" onClick={e=>e.stopPropagation()}>
+      <div className="drawer-head"><div><b>Keranjang JOLIE</b><span>{cartCount} item</span></div><button onClick={()=>setCartOpen(false)}><X/></button></div>
+      <div className="drawer-items">{cart.length ? cart.map(item=><div className="drawer-item" key={item.id}><div className="drawer-thumb">{item.image_url?<img src={item.image_url} alt=""/>:"J"}</div><div className="drawer-info"><b>{item.name}</b><span>{money(item.price)} / {item.unit || "unit"}</span><div className="qty"><button onClick={()=>changeQty(item.id,-1)}><Minus size={13}/></button><strong>{item.quantity}</strong><button onClick={()=>changeQty(item.id,1)}><Plus size={13}/></button></div></div><strong>{money(Number(item.price)*item.quantity)}</strong></div>) : <div className="drawer-empty">Keranjang masih kosong.</div>}</div>
+      <div className="drawer-foot"><div><span>Total</span><strong>{money(cartTotal)}</strong></div>{orderMessage && <div className="order-message">{orderMessage}</div>}<button className="modal-primary" disabled={!cart.length} onClick={checkout}>Buat Pesanan</button><small>Harga dihitung ulang oleh server saat checkout.</small></div>
+    </aside></div>}
   </div>;
 }
+
 export default App;
