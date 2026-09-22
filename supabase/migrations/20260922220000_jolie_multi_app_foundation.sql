@@ -196,3 +196,42 @@ end; $$;
 revoke all on function private.jolie_pos_apply_inventory(uuid,uuid,uuid,numeric,uuid) from public,anon;
 grant usage on schema private to authenticated;
 grant execute on function private.jolie_pos_apply_inventory(uuid,uuid,uuid,numeric,uuid) to authenticated;
+
+drop function if exists public.jolie_pos_create_sale(jsonb,text,numeric,uuid,text);
+create function public.jolie_pos_create_sale(p_items jsonb,p_payment_method text default 'cash',p_amount numeric default null,p_customer_id uuid default null,p_idempotency_key text default null)
+returns jsonb language plpgsql security invoker set search_path=public as $$
+declare v_org uuid;v_user uuid:=(select auth.uid());v_order public.sales_orders%rowtype;v_payment public.payment_transactions%rowtype;v_item jsonb;v_product public.products%rowtype;v_qty numeric;v_subtotal numeric:=0;v_customer_org uuid;v_warehouse uuid;
+begin
+ if v_user is null then raise exception 'AUTH_REQUIRED';end if;
+ select id into v_org from public.organizations where slug='jolie-toko-pakan-jolie-gebang' limit 1;
+ if v_org is null or not private.jolie_has_role(v_org,array['owner','admin','manager','sales']) then raise exception 'POS_ACCESS_DENIED';end if;
+ if jsonb_typeof(p_items)<>'array' or jsonb_array_length(p_items)=0 then raise exception 'CART_EMPTY';end if;
+ if p_payment_method not in('cash','qris','bank_transfer','virtual_account','e_wallet','edc','other') then raise exception 'PAYMENT_METHOD_INVALID';end if;
+ if p_customer_id is not null then select organization_id into v_customer_org from public.customers where id=p_customer_id;if v_customer_org is distinct from v_org then raise exception 'CUSTOMER_TENANT_MISMATCH';end if;end if;
+ if p_idempotency_key is not null then select * into v_payment from public.payment_transactions where organization_id=v_org and idempotency_key=p_idempotency_key limit 1;if found then select * into v_order from public.sales_orders where id=v_payment.order_id;return jsonb_build_object('order_id',v_order.id,'order_number',v_order.order_number,'payment_id',v_payment.id,'payment_status',v_payment.status,'replayed',true);end if;end if;
+ select id into v_warehouse from public.warehouses where organization_id=v_org and is_active=true order by created_at limit 1;
+ for v_item in select * from jsonb_array_elements(p_items) loop
+  if coalesce(v_item->>'product_id','')='' or coalesce(v_item->>'quantity','')='' then raise exception 'CART_ITEM_INVALID';end if;
+  v_qty:=(v_item->>'quantity')::numeric;if v_qty<=0 then raise exception 'QUANTITY_INVALID';end if;
+  select * into v_product from public.products where id=(v_item->>'product_id')::uuid and organization_id=v_org and is_active=true for update;
+  if not found then raise exception 'PRODUCT_NOT_FOUND';end if;
+  if v_product.price is null then raise exception 'PRODUCT_PRICE_MISSING';end if;
+  if v_product.stock_qty<v_qty then raise exception using message='INSUFFICIENT_STOCK: '||v_product.name;end if;
+  v_subtotal:=v_subtotal+v_product.price*v_qty;
+ end loop;
+ if p_amount is not null and p_amount<>v_subtotal then raise exception 'PAYMENT_AMOUNT_MISMATCH';end if;
+ insert into public.sales_orders(organization_id,customer_id,user_id,order_number,status,payment_status,subtotal,shipping_fee,discount,total)
+ values(v_org,p_customer_id,null,'POS-'||to_char(now(),'YYYYMMDDHH24MISS')||'-'||substr(gen_random_uuid()::text,1,6),case when p_payment_method='cash' then 'completed' else 'pending' end,case when p_payment_method='cash' then 'paid' else 'unpaid' end,v_subtotal,0,0,v_subtotal) returning * into v_order;
+ for v_item in select * from jsonb_array_elements(p_items) loop
+  v_qty:=(v_item->>'quantity')::numeric;select * into v_product from public.products where id=(v_item->>'product_id')::uuid and organization_id=v_org for update;
+  insert into public.sales_order_items(order_id,product_id,product_name,quantity,unit_price,line_total) values(v_order.id,v_product.id,v_product.name,v_qty,v_product.price,v_product.price*v_qty);
+  update public.products set stock_qty=stock_qty-v_qty,updated_at=now() where id=v_product.id;
+  if v_warehouse is not null then perform private.jolie_pos_apply_inventory(v_org,v_product.id,v_warehouse,v_qty,v_order.id);end if;
+ end loop;
+ insert into public.payment_transactions(organization_id,order_id,method,status,amount,idempotency_key,created_by) values(v_org,v_order.id,p_payment_method,case when p_payment_method='cash' then 'paid' else 'pending' end,v_subtotal,p_idempotency_key,v_user) returning * into v_payment;
+ insert into public.finance_ledger(organization_id,entry_type,direction,amount,account_code,reference_type,reference_id,description,created_by) values(v_org,'sale','credit',v_subtotal,'4000','sales_order',v_order.id,'POS sale',v_user);
+ insert into public.business_audit_events(organization_id,actor_id,application,action,entity_type,entity_id,payload) values(v_org,v_user,'pos','sale.create','sales_order',v_order.id,jsonb_build_object('amount',v_subtotal,'payment_method',p_payment_method));
+ return jsonb_build_object('order_id',v_order.id,'order_number',v_order.order_number,'payment_id',v_payment.id,'payment_status',v_payment.status,'total',v_subtotal,'replayed',false);
+end;$$;
+revoke all on function public.jolie_pos_create_sale(jsonb,text,numeric,uuid,text) from public,anon;
+grant execute on function public.jolie_pos_create_sale(jsonb,text,numeric,uuid,text) to authenticated;
