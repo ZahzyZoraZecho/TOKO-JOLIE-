@@ -41,6 +41,7 @@ export default function BusinessOS({ user, onBack }) {
   const [active, setActive] = React.useState("overview");
   const [access, setAccess] = React.useState(null);
   const [accessLoading, setAccessLoading] = React.useState(true);
+  const [sessionReady, setSessionReady] = React.useState(false);
   const [org, setOrg] = React.useState(null);
   const [products, setProducts] = React.useState([]);
   const [orders, setOrders] = React.useState([]);
@@ -53,14 +54,30 @@ export default function BusinessOS({ user, onBack }) {
   const [lastSync, setLastSync] = React.useState(null);
 
   const loadData = React.useCallback(async () => {
-    if (!supabase || !user) {
+    if (!supabase) {
       setLoading(false);
+      setAccessLoading(false);
+      return;
+    }
+    if (!user) {
+      setLoading(false);
+      setAccessLoading(false);
+      setAccess(null);
+      setOrg(null);
       return;
     }
     setRefreshing(true);
     setAccessLoading(true);
     const nextErrors = [];
 
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      setAccess(null);
+      setOrg(null);
+      setErrors(["Sesi login belum aktif. Silakan login ulang untuk membuka JOLIE Business OS."]);
+      setLoading(false); setRefreshing(false); setAccessLoading(false);
+      return;
+    }
     const { data: accessRows, error: accessError } = await supabase.rpc("jolie_my_access");
     const myAccess = accessRows?.[0] || null;
     if (accessError || !myAccess) {
@@ -130,8 +147,17 @@ export default function BusinessOS({ user, onBack }) {
   }, [user]);
 
   React.useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let active = true;
+    if (!supabase) { setSessionReady(true); return undefined; }
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) setSessionReady(true);
+    });
+    return () => { active = false; };
+  }, []);
+
+  React.useEffect(() => {
+    if (sessionReady) loadData();
+  }, [loadData, sessionReady]);
 
   const paidOrders = orders.filter(o => String(o.payment_status || "").toLowerCase() === "paid");
   const pendingOrders = orders.filter(o => !["completed", "cancelled", "delivered"].includes(String(o.status || "").toLowerCase()));
