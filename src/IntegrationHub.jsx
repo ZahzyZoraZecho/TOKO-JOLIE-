@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft, Barcode, Printer, CreditCard, Smartphone, Wifi, CheckCircle2, AlertTriangle, Plus, RefreshCw } from "lucide-react";
 import { businessSupabase } from "./lib/supabase";
+import JsBarcode from "jsbarcode";
 
 const TYPES = [
   ["barcode_scanner","Barcode Scanner","usb"],
@@ -13,7 +14,7 @@ const TYPES = [
 
 function money(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v||0));}
 
-export default function IntegrationHub({onBack}){
+function BarcodePreview({value}){const ref=React.useRef(null);React.useEffect(()=>{if(ref.current&&value)try{JsBarcode(ref.current,value,{format:"CODE128",displayValue:true,height:48,margin:6,width:2})}catch(e){ref.current.innerHTML=""}},[value]);return <svg ref={ref} style={{width:"100%",background:"#fff",marginTop:8}}/>}\n\nexport default function IntegrationHub({onBack}){
   const [access,setAccess]=React.useState(null),[devices,setDevices]=React.useState([]),[jobs,setJobs]=React.useState([]),[adapters,setAdapters]=React.useState([]),[ppob,setPpob]=React.useState([]),[products,setProducts]=React.useState([]);
   const [busy,setBusy]=React.useState(true),[msg,setMsg]=React.useState(""),[scan,setScan]=React.useState(""),[device,setDevice]=React.useState({type:"barcode_scanner",name:"",code:"",connection:"usb"});
   const load=React.useCallback(async()=>{
@@ -71,7 +72,7 @@ export default function IntegrationHub({onBack}){
     <section className="ih-hero"><div><small>HARDWARE + PAYMENT + DIGITAL SERVICES</small><h1>Satu Integration Hub, banyak adapter.</h1><p>POS tidak dikunci ke merek perangkat atau provider tertentu. Scanner, printer, cash drawer, EDC dan PPOB masuk lewat adapter sehingga provider dapat diganti tanpa merombak transaksi inti.</p></div><Wifi size={46}/></section>
     {msg&&<div className="ih-msg">{msg}</div>}
     <div className="ih-grid">
-      <section className="ih-card"><Barcode size={24}/><h3>Barcode Engine</h3><p>Scanner diperlakukan sebagai input barcode generik. Produk dapat menyimpan barcode internal/EAN/UPC tanpa mengikat POS ke model scanner.</p><input className="ih-input ih-wide ih-scan" autoFocus value={scan} onChange={e=>setScan(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")setScan(e.currentTarget.value)}} placeholder="Scan barcode di sini…"/>{scan&&<div className="ih-barcode">{product?product.name:"Barcode belum terdaftar"} · {scan}</div>}</section>
+      <section className="ih-card"><Barcode size={24}/><h3>Barcode Studio</h3><p>Scanner diperlakukan sebagai input barcode generik. Studio dapat membuat barcode Code128 untuk SKU/internal code dan menyiapkan label cetak.</p><input className="ih-input ih-wide ih-scan" autoFocus value={scan} onChange={e=>setScan(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")setScan(e.currentTarget.value)}} placeholder="Scan / masukkan barcode…"/>{scan&&<><div className="ih-barcode">{product?product.name:"Barcode belum terdaftar"} · {scan}</div><BarcodePreview value={scan}/></>}</section>
       <section className="ih-card"><Printer size={24}/><h3>Print Engine</h3><p>Receipt, label, barcode, invoice dan report masuk antrean print. Agent lokal/USB/network dapat mengambil job tanpa mengubah logic POS.</p><div className="ih-row"><button className="ih-btn" onClick={()=>queuePrint("receipt")}><Printer size={14}/> Receipt</button><button className="ih-btn" onClick={()=>queuePrint("label")}><Barcode size={14}/> Label</button><button className="ih-btn" onClick={()=>queuePrint("barcode")}><Barcode size={14}/> Barcode</button></div></section>
       <section className="ih-card"><CreditCard size={24}/><h3>Payment Hub / EDC</h3><p>EDC disiapkan sebagai adapter. Status pembayaran hanya dianggap final setelah provider memberi konfirmasi; tidak ada asumsi sukses dari koneksi lokal.</p><div className="ih-list">{adapters.length?adapters.map(a=><div className="ih-item" key={a.id}><b>{a.provider_name}</b> · {a.method}<span className="ih-badge">{a.is_enabled?"enabled":"disabled"}</span></div>):<div className="ih-muted">Belum ada adapter provider terdaftar.</div>}</div></section>
       <section className="ih-card"><Smartphone size={24}/><h3>JOLIE PPOB</h3><p>Fondasi untuk pulsa, paket data, PLN token/pascabayar, top-up e-wallet dan voucher digital. Ini bukan stok fisik dan tidak boleh dipalsukan sebagai barang inventory.</p><div className="ih-list">{ppob.length?ppob.map(x=><div className="ih-item" key={x.id}>{x.service_type} · {x.customer_reference}<span className="ih-badge">{x.status}</span><br/>{money(x.selling_price)}</div>):<div className="ih-muted">Belum ada transaksi PPOB.</div>}</div></section>
