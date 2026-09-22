@@ -107,7 +107,11 @@ export default function BusinessOSEntry() {
     if (!businessSupabase) return;
     setBusy(true);
     setMessage("");
-    const { data, error } = await businessSupabase.auth.signUp({\n      email: email.trim(),\n      password,\n      options: { emailRedirectTo: "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/" }\n    });
+    const { data, error } = await businessSupabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: { emailRedirectTo: "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/" }
+    });
     if (error) {
       setMessage(error.message || "Pembuatan akun staff gagal.");
     } else if (data?.session) {
