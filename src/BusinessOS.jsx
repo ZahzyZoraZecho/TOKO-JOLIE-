@@ -169,7 +169,7 @@ export default function BusinessOS({ user, onBack }) {
   const role = access?.role || null;
   const inventoryAccess = ["owner","admin","manager","inventory"].includes(role);
   const procurementAccess = ["owner","admin","manager","procurement","finance"].includes(role);
-  const visibleModules = modules.filter(m => {
+  // Compute the sidebar list from the authenticated role in a dedicated variable.\n  // This name is intentionally distinct from older deployed bundles to prevent stale-reference confusion.\n  const allowedModules = modules.filter(m => {
     if (!role) return false;
     if (["owner","admin","manager"].includes(role)) return true;
     if (role === "sales") return ["overview","pos","sales","ai"].includes(m.id);
@@ -236,7 +236,7 @@ export default function BusinessOS({ user, onBack }) {
     <div className="bos-layout">
       <aside className="bos-sidebar">
         <div className="bos-side-label">OPERATING SYSTEM</div>
-        {visibleModules.map(m => { const Icon=m.icon; return <button key={m.id} className={"bos-module "+(active===m.id?"active":"")} onClick={()=>setActive(m.id)}><Icon size={17}/><span>{m.label}</span></button>; })}
+        {allowedModules.map(m => { const Icon=m.icon; return <button key={m.id} className={"bos-module "+(active===m.id?"active":"")} onClick={()=>setActive(m.id)}><Icon size={17}/><span>{m.label}</span></button>; })}
         <div className="bos-side-status"><b>Data Guard</b>Business OS hanya membaca data yang diizinkan Supabase. Modul internal tidak membuka data melalui bypass.</div>
       </aside>
 
