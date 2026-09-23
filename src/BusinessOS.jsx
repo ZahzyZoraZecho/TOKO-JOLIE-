@@ -169,7 +169,8 @@ export default function BusinessOS({ user, onBack }) {
   const role = access?.role || null;
   const inventoryAccess = ["owner","admin","manager","inventory"].includes(role);
   const procurementAccess = ["owner","admin","manager","procurement","finance"].includes(role);
-  // Compute the sidebar list from the authenticated role.\n  const allowedModules = modules.filter(m => {
+  // Compute the sidebar list from the authenticated role.
+  const allowedModules = modules.filter(m => {
     if (!role) return false;
     if (["owner","admin","manager"].includes(role)) return true;
     if (role === "sales") return ["overview","pos","sales","ai"].includes(m.id);
