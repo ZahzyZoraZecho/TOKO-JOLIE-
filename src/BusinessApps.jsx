@@ -137,7 +137,18 @@ function ModuleWorkbench({appId,data,organizationId,onRefresh}){
  const spec=entities.find(x=>x.key===entityKey)||entities[0];
  const [mode,setMode]=React.useState("view"),[editing,setEditing]=React.useState(null),[form,setForm]=React.useState(spec?.defaults||{}),[msg,setMsg]=React.useState(""),[busy,setBusy]=React.useState(false);
  React.useEffect(()=>{if(!spec)return;setMode("view");setEditing(null);setForm(spec.defaults);},[entityKey,appId]);
- React.useEffect(()=>{const h=e=>{if(e.detail?.appId!==appId)return;const op=e.detail.op;if(op==="insert"){setEditing(null);setForm(spec?.defaults||{});setMode("insert")}else if(op==="update"){setMode("update")}else if(op==="delete"){setMsg("Pilih data pada daftar untuk menghapus.")}else if(op==="view"){setMode("view")}};window.addEventListener("jolie-operation",h);return()=>window.removeEventListener("jolie-operation",h)},[appId,entityKey,spec]);
+ React.useEffect(()=>{
+   const h=e=>{
+     if(e.detail?.appId!==appId)return;
+     const op=e.detail.op;
+     if(op==="insert"){setEditing(null);setForm(spec?.defaults||{});setMode("insert")}
+     else if(op==="update"){setMode("update")}
+     else if(op==="delete"){setMsg("Pilih data pada daftar untuk menghapus.")}
+     else if(op==="view"){setMode("view")}
+   };
+   window.addEventListener("jolie-operation",h);
+   return()=>window.removeEventListener("jolie-operation",h);
+ },[appId,entityKey]);
  if(!spec)return null;
  const rows=data[spec.dataKey]||[];
  const reset=()=>{setEditing(null);setForm(spec.defaults);setMode("view");};
