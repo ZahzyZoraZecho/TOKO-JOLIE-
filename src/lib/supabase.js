@@ -2,15 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const isBusinessPath = window.location.pathname.includes("/business-os");
 
-export const supabase = supabaseUrl && supabasePublishableKey
+export const supabase = !isBusinessPath && supabaseUrl && supabasePublishableKey
   ? createClient(supabaseUrl, supabasePublishableKey)
   : null;
 
-// Business OS deliberately uses a separate browser auth namespace.
-// It shares the same Supabase project/database/RLS, but its login session
-// is independent from the public JOLIE storefront session.
-export const businessSupabase = supabaseUrl && supabasePublishableKey
+export const businessSupabase = isBusinessPath && supabaseUrl && supabasePublishableKey
   ? createClient(supabaseUrl, supabasePublishableKey, {
       auth: {
         storageKey: "jolie-business-os-auth",
