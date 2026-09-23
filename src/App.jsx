@@ -34,7 +34,7 @@ function productArt(label, kind = "feed") {
   return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 }
 
-const demoCatalog = [
+const fallbackCatalog = [
   { id:"cat-wellmilk", name:"WELLMILK", unit:"Katalog · pakan", price:null, stock_qty:null, is_demo:true, image_url:productArt("WELLMILK"), description:"Produk pakan yang tercantum dalam daftar katalog JOLIE. Detail kemasan, harga, dan ketersediaan dikonfirmasi oleh toko." },
   { id:"cat-profat", name:"PROFAT", unit:"Katalog · pakan", price:null, stock_qty:null, is_demo:true, image_url:productArt("PROFAT"), description:"Produk pakan dalam katalog JOLIE. Jangan menganggap gambar ilustrasi sebagai kemasan resmi; foto asli akan diganti setelah tersedia." },
   { id:"cat-lifecat", name:"LIFECAT", unit:"Katalog · pakan kucing", price:null, stock_qty:null, is_demo:true, image_url:productArt("LIFECAT","pet"), description:"Produk pakan kucing yang tercantum pada daftar JOLIE. Varian dan ukuran mengikuti stok toko." },
@@ -152,9 +152,8 @@ function App() {
 
   if (businessOsOpen) return <BusinessOS user={user} onBack={()=>{ window.location.href = "./"; }} />;
 
-  const catalogProducts = products.length ? products : demoCatalog;
-  const isDemoCatalog = products.length === 0;
-  const filteredProducts = catalogProducts.filter(p => {
+  const catalogProducts = products.length ? products : fallbackCatalog;
+    const filteredProducts = catalogProducts.filter(p => {
     const q = query.trim().toLowerCase();
     return !q || p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q);
   });
@@ -271,7 +270,7 @@ function App() {
         <div className="brand"><div className="brand-mark">🌿</div><div><strong>JOLIE</strong><span>Pakan & Kebutuhan Ternak</span></div></div>
         <div className="search-box"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&scrollTo("produk")} placeholder="Cari produk, kategori, atau kebutuhan ternak..."/><button aria-label="Cari" onClick={()=>scrollTo("produk")}><Search size={17}/></button></div>
         <button className="header-action" onClick={openStoreMap}><MapPin size={18}/><div><b>Lokasi Toko</b><span>Jalan Raya Taji–Tinggang</span></div></button>
-        <button className="header-action account" onClick={()=>setAuthOpen(true)}><UserRound size={18}/><div><b>{user ? "Akun Saya" : "Login / Daftar"}</b><span>{user?.email || "Masuk ke JOLIE"}</span></div></button>
+        <button className="header-action account" onClick={()=>setAuthOpen(true)}><UserRound size={18}/><div><b>{user ? "Akun Saya" : "Masuk / Buat Akun"}</b><span>{user?.email || "Masuk ke JOLIE"}</span></div></button>
         <button className="header-cart" onClick={()=>setCartOpen(true)}><ShoppingCart/><span className="cart-badge">{cartCount}</span><div><b>Keranjang</b><small>{cartCount} item</small></div></button>
       </div>
       <div className="nav-row"><div className="container nav-inner">
@@ -367,10 +366,10 @@ function App() {
         <input className="modal-input" type="email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" required/>
         <input className="modal-input" type="password" minLength={6} value={authPassword} onChange={e=>setAuthPassword(e.target.value)} placeholder="Password" required/>
         {authMessage && <div className="modal-message">{authMessage}</div>}
-        <button className="modal-primary" disabled={authBusy}>{authBusy ? "Memproses..." : authMode === "login" ? "Masuk" : "Daftar"}</button>
+        <button className="modal-primary" disabled={authBusy}>{authBusy ? "Memproses..." : authMode === "login" ? "Masuk" : "Buat Akun"}</button>
       </form>
       {user && <button className="modal-secondary" onClick={signOut}><LogOut size={15}/> Keluar</button>}
-      <button className="modal-switch" onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthMessage("");}}>{authMode==="login"?"Belum punya akun? Daftar":"Sudah punya akun? Masuk"}</button>
+      <button className="modal-switch" onClick={()=>{setAuthMode(authMode==="login"?"signup":"login");setAuthMessage("");}}>{authMode==="login"?"Belum punya akun? Buat Akun":"Sudah punya akun? Masuk"}</button>
     </div></div>}
 
     {articleOpen && <div className="modal-backdrop" onClick={()=>setArticleOpen(null)}><div className="modal-card article-modal" onClick={e=>e.stopPropagation()}><button className="modal-close" onClick={()=>setArticleOpen(null)}><X size={18}/></button><span className="eyebrow">JOLIE KNOWLEDGE</span><h2>{articleOpen==="storage"?"Penyimpanan Pakan yang Baik":articleOpen==="water"?"Air dan Lingkungan Pemeliharaan":"Memilih Pakan Sesuai Kebutuhan Ternak"}</h2><p>{articleOpen==="storage"?"Simpan pakan di tempat kering, bersih, berventilasi baik, terlindung dari air dan hama. Gunakan kemasan yang tertutup dan terapkan rotasi stok agar produk lama tidak tertinggal.":articleOpen==="water"?"Pastikan air minum/air budidaya sesuai kebutuhan hewan dan pantau kebersihan lingkungan. Untuk ikan, kualitas air menjadi bagian penting dari manajemen budidaya.": "Mulai dari jenis hewan, umur/fase, tujuan pemeliharaan, kondisi tubuh, serta label produk. Jangan mengganti pakan secara mendadak tanpa pertimbangan; perhatikan respons ternak dan konsultasikan bila ada masalah."}</p><button className="modal-primary" onClick={()=>{setArticleOpen(null);openWhatsApp("Halo JOLIE, saya ingin konsultasi tentang "+(articleOpen==="storage"?"penyimpanan pakan":articleOpen==="water"?"kualitas air":"pemilihan pakan"));}}>Konsultasi ke JOLIE</button></div></div>}
