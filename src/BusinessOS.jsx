@@ -35,6 +35,7 @@ const modules = [
   { id: "procurement", label: "Pembelian", icon: ClipboardList },
   { id: "finance", label: "Keuangan", icon: CircleDollarSign },
   { id: "crm", label: "CRM", icon: Users },
+  { id: "team", label: "Tim & Otoritas", icon: Users },
   { id: "ai", label: "AI Business", icon: BrainCircuit }
 ];
 
@@ -178,6 +179,7 @@ export default function BusinessOS({ user, onBack }) {
     if (role === "procurement") return ["overview","procurement","ai"].includes(m.id);
     if (role === "finance") return ["overview","sales","finance","ai"].includes(m.id);
     if (role === "crm") return ["overview","crm","ai"].includes(m.id);
+    if (role === "team") return ["overview","team","ai"].includes(m.id);
     return m.id === "overview";
   });
   const dataCoverage = [
@@ -195,7 +197,8 @@ export default function BusinessOS({ user, onBack }) {
     procurement: { title: "Pembelian & Supplier", subtitle: "Purchase order dan pengadaan" },
     finance: { title: "Keuangan", subtitle: "Ringkasan nilai transaksi yang tersedia" },
     crm: { title: "CRM", subtitle: "Pelanggan dan relasi komersial" },
-    ai: { title: "AI Business Advisor", subtitle: "Insight berbasis data yang benar-benar tersedia" }
+    ai: { title: "AI Business Advisor", subtitle: "Insight berbasis data yang benar-benar tersedia" },
+    team: { title: "Tim & Otoritas", subtitle: "Pembagian user, role dan kewenangan organisasi" }
   };
 
   if (!user || accessLoading || !access) {
@@ -258,6 +261,7 @@ export default function BusinessOS({ user, onBack }) {
           {active==="procurement" && <Procurement purchaseOrders={purchaseOrders} access={procurementAccess}/>}
           {active==="finance" && <Finance orders={orders} salesTotal={salesTotal} paidTotal={paidTotal}/>}
           {active==="crm" && <CRM customers={customers}/>}
+          {active==="team" && <TeamAccess organizationId={org.id} role={role}/>}
           {active==="ai" && <AIAdvisor products={products} orders={orders} inventoryAccess={inventoryAccess} procurementAccess={procurementAccess}/>}
         </>}
 
@@ -327,6 +331,36 @@ function Procurement({purchaseOrders,access}){return <section className="bos-pan
 function Finance({orders,salesTotal,paidTotal}){return <><div className="bos-kpis"><Kpi icon={CircleDollarSign} label="Nilai seluruh order terbaca" value={rupiah(salesTotal)} note="Bukan laba bersih"/><Kpi icon={CheckCircle2} label="Order paid" value={rupiah(paidTotal)} note="Status payment = paid"/><Kpi icon={WalletCards} label="Belum terbayar" value={rupiah(Math.max(0,salesTotal-paidTotal))} note="Selisih dari data order terbaca"/><Kpi icon={Database} label="Catatan" value="COGS —" note="Belum ada data biaya pokok yang dapat dibaca"/></div><section className="bos-panel" style={{marginTop:12}}><div className="bos-alert"><ShieldCheck size={16}/>Business OS tidak menyebut angka di atas sebagai laba. Untuk P&L dan margin, kita perlu cost/COGS dan ledger keuangan yang terhubung.</div></section></>}
 
 function CRM({customers}){return <section className="bos-panel"><div className="bos-panel-head"><h2>Pelanggan terbaru</h2><span>{customers.length} record terbaca</span></div>{customers.length?<div style={{overflowX:"auto"}}><table className="bos-table"><thead><tr><th>Nama</th><th>Email</th><th>Telepon</th><th>Bergabung</th></tr></thead><tbody>{customers.map(c=><tr key={c.id}><td><strong>{c.name||"—"}</strong></td><td>{c.email||"—"}</td><td>{c.phone||"—"}</td><td>{shortDate(c.created_at)}</td></tr>)}</tbody></table></div>:<div className="bos-muted">Belum ada data CRM yang dapat dibaca akun ini.</div>}</section>}
+
+function TeamAccess({organizationId,role}){
+  const [roles,setRoles]=React.useState([]),[members,setMembers]=React.useState([]),[email,setEmail]=React.useState(""),[selectedRole,setSelectedRole]=React.useState("sales"),[message,setMessage]=React.useState(""),[busy,setBusy]=React.useState(false);
+  const load=React.useCallback(async()=>{
+    const [rr,mm]=await Promise.all([
+      businessSupabase.from("jolie_role_definitions").select("role,label,description,authority_level,can_manage_users,can_approve_finance,can_manage_catalog,can_manage_inventory,can_manage_sales,can_manage_procurement,can_manage_crm,can_use_ai").order("authority_level",{ascending:false}),
+      businessSupabase.from("organization_members").select("id,user_id,role,is_active,created_at,profiles(full_name,phone)").eq("organization_id",organizationId).order("created_at")
+    ]);
+    setRoles(rr.data||[]);setMembers(mm.data||[]);if(rr.error||mm.error)setMessage(rr.error?.message||mm.error?.message||"");
+  },[organizationId]);
+  React.useEffect(()=>{load();},[load]);
+  async function assign(){
+    if(role!=="owner") return setMessage("Hanya Owner yang dapat menetapkan atau mengganti role.");
+    if(!email.trim()) return setMessage("Masukkan email user yang sudah terdaftar.");
+    setBusy(true);setMessage("");
+    const {data,error}=await businessSupabase.rpc("jolie_assign_role_by_email",{p_email:email.trim(),p_role:selectedRole});
+    setMessage(error?.message||("Role "+selectedRole+" berhasil ditetapkan untuk "+email.trim()+"."));
+    if(!error){setEmail("");await load();}
+    setBusy(false);
+  }
+  return <>
+    <section className="bos-panel"><div className="bos-panel-head"><h2>Struktur otoritas JOLIE</h2><span>RBAC + RLS</span></div>
+      <div className="bos-module-grid">{roles.map(r=><div className="bos-module-card" key={r.role}><b>{r.label}</b><span><strong>Level {r.authority_level}</strong> · {r.description}</span><span>Finance {r.can_approve_finance?"✓":"—"} · Produk {r.can_manage_catalog?"✓":"—"} · Stok {r.can_manage_inventory?"✓":"—"} · Sales {r.can_manage_sales?"✓":"—"} · Procurement {r.can_manage_procurement?"✓":"—"} · CRM {r.can_manage_crm?"✓":"—"}</span></div>)}</div>
+    </section>
+    <section className="bos-grid">
+      <div className="bos-panel"><div className="bos-panel-head"><h2>Anggota organisasi</h2><span>{members.length} user</span></div><div style={{overflowX:"auto"}}><table className="bos-table"><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Bergabung</th></tr></thead><tbody>{members.map(m=><tr key={m.id}><td><strong>{m.profiles?.full_name||m.user_id.slice(0,8)}</strong><br/><small>{m.profiles?.phone||"ID user: "+m.user_id.slice(0,8)}</small></td><td><span className="bos-status">{m.role}</span></td><td>{m.is_active?"Aktif":"Nonaktif"}</td><td>{shortDate(m.created_at)}</td></tr>)}</tbody></table></div></div>
+      <div className="bos-panel"><div className="bos-panel-head"><h2>Tetapkan role</h2><span>{role==="owner"?"Owner control":"Read only"}</span></div><p style={{fontSize:9,color:"#71837c",lineHeight:1.5}}>User harus sudah memiliki akun JOLIE. Owner kemudian menetapkan role berdasarkan fungsi kerja. Akses modul tetap dibatasi lagi oleh RLS database.</p><input className="bos-pos-search" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email user yang sudah terdaftar" disabled={role!=="owner"}/><select className="bos-pos-search" style={{marginTop:8}} value={selectedRole} onChange={e=>setSelectedRole(e.target.value)} disabled={role!=="owner"}>{roles.filter(r=>r.role!=="owner").map(r=><option key={r.role} value={r.role}>{r.label}</option>)}</select><button className="bos-pos-submit" onClick={assign} disabled={busy||role!=="owner"}>{busy?"Menyimpan…":"Tetapkan / Perbarui Role"}</button>{message&&<div className="bos-pos-message">{message}</div>}</div>
+    </section>
+  </>;
+}
 
 function AIAdvisor({products,orders,inventoryAccess,procurementAccess}){const insights=[];if(!products.length)insights.push("Katalog belum memiliki produk aktif yang dapat dianalisis.");else insights.push("Katalog aktif terbaca: "+products.length+" produk. Lengkapi harga, satuan, foto, dan stock_qty resmi agar insight komersial lebih tajam.");if(!orders.length)insights.push("Belum ada order yang terbaca untuk analisis tren penjualan.");else insights.push("Ada "+orders.length+" order yang dapat dibaca. Langkah berikutnya adalah menghubungkan agregasi owner agar KPI bisnis tidak terbatas pada order akun.");if(!inventoryAccess)insights.push("Inventory ledger masih protected. Setelah role organisasi tersedia, AI dapat membaca stok, reserved quantity dan reorder point.");if(!procurementAccess)insights.push("Purchase order masih protected. Setelah akses tersedia, AI dapat membantu rekomendasi restock dan supplier.");return <div className="bos-grid"><section className="bos-ai"><BrainCircuit size={25}/><b style={{display:"block",marginTop:10}}>JOLIE AI Business Advisor</b><p>Mesin insight tahap pertama. Tidak mengarang data dan tidak menyamakan omzet dengan laba.</p><div className="bos-ai-list">{insights.map((x,i)=><div key={i}>{x}</div>)}</div></section><section className="bos-panel"><div className="bos-panel-head"><h2>Next intelligence layer</h2></div><div className="bos-module-card"><BarChart3 size={20}/><b>Demand & Reorder Intelligence</b><span>Setelah data penjualan, inventory ledger, supplier dan lead time terbuka, sistem dapat menghitung tren, risiko stockout dan rekomendasi pembelian dengan audit trail.</span></div><div className="bos-module-card" style={{marginTop:10}}><ShieldCheck size={20}/><b>AI Governance</b><span>Insight AI tetap read-only terhadap keputusan sensitif sampai ada policy, role dan approval workflow.</span></div></section></div>}
 
