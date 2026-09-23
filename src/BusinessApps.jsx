@@ -91,7 +91,7 @@ function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launche
   </div>
  </div>;
 }
-function ModuleWorkbench({appId,data,organizationId,onRefresh}){
+function OperationGuide({appId}){\n const fire=op=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op}}));\n return <Panel><div className="biz-panel-head"><div><h3>Operasional Modul</h3><small>Gunakan navigasi ini untuk mengelola data: lihat, insert, update, dan delete. Aksi diterapkan ke tabel modul yang aktif.</small></div><div className="form-actions"><button className="app-btn" onClick={()=>fire("view")}>View / Daftar</button><button className="app-primary" onClick={()=>fire("insert")}>＋ Insert</button><button className="app-btn" onClick={()=>fire("update")}>Update</button><button className="app-warn" onClick={()=>fire("delete")}>Delete</button></div></div></Panel>}\nfunction ModuleWorkbench({appId,data,organizationId,onRefresh}){
  const configs={
   erp:[
    {key:"products",label:"Product Master",table:"products",dataKey:"products",fields:[["name","Nama produk","text"],["slug","Slug","text"],["sku","SKU","text"],["description","Deskripsi","text"],["unit","Unit","text"],["price","Harga","number"],["stock_qty","Stok","number"],["min_stock_qty","Minimum stok","number"],["is_active","Aktif","boolean"]],defaults:{name:"",slug:"",sku:"",description:"",unit:"pcs",price:0,stock_qty:0,min_stock_qty:0,is_active:true}},
