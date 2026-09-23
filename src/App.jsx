@@ -312,7 +312,7 @@ function App() {
               ? <button className="ask-price" onClick={()=>openWhatsApp("Halo JOLIE, saya ingin menanyakan harga dan stok produk: "+p.name)}><MessageCircle size={15}/> Tanya Harga & Stok</button>
               : <button onClick={()=>addToCart(p)} disabled={Number(p.stock_qty) <= 0}><ShoppingCart size={15}/> Tambah ke Keranjang</button>}
           </article>)}</div>
-          {isDemoCatalog && <div className="catalog-attribution">Katalog ini menggunakan daftar produk yang telah diberikan untuk JOLIE. Gambar bertanda ilustrasi bukan foto kemasan resmi. Harga/stok belum diisi agar tidak mengarang data; gunakan “Tanya Harga & Stok” atau masukkan data resmi ke Supabase.</div>}</> :
+          </> :
           <div className="catalog-state"><b>Katalog sedang diperbarui.</b><span>Hubungi JOLIE untuk mendapatkan informasi produk dan ketersediaan terbaru.</span></div>}
         </section>
 
