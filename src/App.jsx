@@ -122,7 +122,7 @@ function App() {
       const { data: org, error: orgError } = await supabase
         .from("organizations").select("id,name,slug").eq("slug", ORG_SLUG).single();
       if (orgError) {
-        if (active) { setCatalogError(orgError.message); setLoading(false); }
+        if (active) { setCatalogError("Katalog JOLIE sedang diperbarui."); setLoading(false); }
         return;
       }
       const [{ data: cats, error: catError }, { data: prods, error: prodError }] = await Promise.all([
@@ -137,7 +137,7 @@ function App() {
         setOrganization(org);
         setCategories(cats || []);
         setProducts(prods || []);
-        setCatalogError(catError?.message || prodError?.message || "");
+        setCatalogError((catError || prodError) ? "Katalog JOLIE sedang diperbarui." : "");
         setLoading(false);
       }
     }
@@ -304,7 +304,7 @@ function App() {
             {p.is_demo && <span className="product-tag promo">PREVIEW</span>}
             {p.compare_at_price && p.compare_at_price > p.price && <span className="product-tag promo">Promo</span>}
             <div className="product-image">{p.image_url ? <img src={p.image_url} alt={p.name}/> : <div className="product-image-placeholder">JOLIE</div>}</div>
-            <h3>{p.name}</h3><small>{p.unit || "Satuan belum diatur"}</small>
+            <h3>{p.name}</h3><small>{p.unit || "Detail produk tersedia melalui JOLIE"}</small>
             <p className="product-desc">{p.description || "Keterangan produk akan dilengkapi berdasarkan data katalog JOLIE."}</p>
             <div className="rating"><span>★★★★★</span></div>
             <strong>{p.price == null ? "Harga via WhatsApp" : money(p.price)}</strong>
@@ -313,7 +313,7 @@ function App() {
               : <button onClick={()=>addToCart(p)} disabled={Number(p.stock_qty) <= 0}><ShoppingCart size={15}/> Tambah ke Keranjang</button>}
           </article>)}</div>
           {isDemoCatalog && <div className="catalog-attribution">Katalog ini menggunakan daftar produk yang telah diberikan untuk JOLIE. Gambar bertanda ilustrasi bukan foto kemasan resmi. Harga/stok belum diisi agar tidak mengarang data; gunakan “Tanya Harga & Stok” atau masukkan data resmi ke Supabase.</div>}</> :
-          <div className="catalog-state"><b>Katalog sedang disiapkan.</b><span>{catalogError || "Belum ada produk aktif di database JOLIE."}</span></div>}
+          <div className="catalog-state"><b>Katalog sedang diperbarui.</b><span>Hubungi JOLIE untuk mendapatkan informasi produk dan ketersediaan terbaru.</span></div>}
         </section>
 
         <section className="service-strip" id="layanan"><div><Truck/><b>Pengiriman Cepat</b><span>Pesanan diproses dengan teratur.</span></div><div><ShieldCheck/><b>Pembayaran Aman</b><span>Pilihan pembayaran akan terintegrasi.</span></div><div><Headphones/><b>Layanan Konsultasi</b><span>Tim JOLIE siap membantu.</span></div><div><Home/><b>Produk Berkualitas</b><span>Katalog dikelola dari data bisnis.</span></div></section>
