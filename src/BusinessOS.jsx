@@ -123,7 +123,7 @@ export default function BusinessOS({ user, onBack }) {
         .order("updated_at", { ascending: false })
         .limit(200),
       businessSupabase.from("purchase_orders")
-        .select("id,po_number,status,total,created_at")
+        .select("id,po_number,status,subtotal,created_at")
         .eq("organization_id", organization.id)
         .order("created_at", { ascending: false })
         .limit(50)
