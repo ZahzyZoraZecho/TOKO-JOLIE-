@@ -29,7 +29,7 @@ jobs:
       - run: npm run build
         env:
           VITE_SUPABASE_URL: https://izbnbqjrmrslcqxoyzse.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_4cgxtFMyLoAk8GnMxHOj8w_4Pg0MTXF
+          VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6Ym5icWpybXJzbGNxeG95enNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwNDMxNDIsImV4cCI6MjEwNTYxOTE0Mn0.jf9-Nm421heB__fd2hVZ7at86RtxzHYYzV_AT_JFtEM
       - name: Prepare SPA fallback for direct routes
         run: cp dist/index.html dist/404.html
       - uses: actions/configure-pages@v5
