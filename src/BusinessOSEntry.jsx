@@ -1,9 +1,10 @@
 import React from "react";
-import { LockKeyhole, LogIn, ShieldCheck, Store, UserRound } from "lucide-react";
+import { LockKeyhole, LogIn, ShieldCheck, Store, UserRound, KeyRound } from "lucide-react";
 import BusinessOS from "./BusinessOS";
 import { businessSupabase } from "./lib/supabase";
 
 const ORG_NAME = "JOLIE — Toko Pakan Jolie Gebang";
+const BUSINESS_OS_URL = "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/";
 
 export default function BusinessOSEntry() {
   const [session, setSession] = React.useState(null);
@@ -17,7 +18,6 @@ export default function BusinessOSEntry() {
   const [ownerBootstrap, setOwnerBootstrap] = React.useState(false);
   const [access, setAccess] = React.useState(null);
   const [accessChecking, setAccessChecking] = React.useState(false);
-  const [pendingConfirmation, setPendingConfirmation] = React.useState(false);
 
   const loadSession = React.useCallback(async () => {
     if (!businessSupabase) {
@@ -62,20 +62,6 @@ export default function BusinessOSEntry() {
     return () => { cancelled = true; };
   }, [session]);
 
-  async function resendConfirmation() {
-    if (!businessSupabase || !email.trim()) return;
-    setBusy(true);
-    setMessage("");
-    const { error } = await businessSupabase.auth.resend({
-      type: "signup",
-      email: email.trim(),
-      options: { emailRedirectTo: "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/" }
-    });
-    setMessage(error ? (error.message || "Email konfirmasi belum dapat dikirim ulang.") : "Email konfirmasi dikirim ulang. Periksa Inbox, Spam, atau Promosi email pemilik akun.");
-    setPendingConfirmation(!error);
-    setBusy(false);
-  }
-
   async function submitLogin(event) {
     event.preventDefault();
     if (!businessSupabase) return;
@@ -86,7 +72,7 @@ export default function BusinessOSEntry() {
       password
     });
     if (error) {
-      setMessage(error.message || "Login Business OS gagal.");
+      setMessage("Login gagal: email atau password tidak cocok. Jika password Owner lupa/tidak yakin, gunakan Reset password di bawah.");
     } else if (!data?.session) {
       setMessage("Login berhasil tetapi sesi Business OS belum terbentuk. Coba lagi.");
     } else if (ownerBootstrap && setupCode.trim()) {
@@ -96,8 +82,6 @@ export default function BusinessOSEntry() {
       } else {
         setMessage("Owner Business OS berhasil dibuat. Memuat akses operasional…");
       }
-    } else {
-      setMessage("");
     }
     setBusy(false);
   }
@@ -110,7 +94,7 @@ export default function BusinessOSEntry() {
     const { data, error } = await businessSupabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: "https://zahzyzorazecho.github.io/TOKO-JOLIE-/business-os/" }
+      options: { emailRedirectTo: BUSINESS_OS_URL }
     });
     if (error) {
       setMessage(error.message || "Pembuatan akun staff gagal.");
@@ -124,6 +108,23 @@ export default function BusinessOSEntry() {
     }
     setBusy(false);
   }
+
+  async function resetPassword() {
+    if (!businessSupabase || !email.trim()) {
+      setMessage("Masukkan email staff terlebih dahulu.");
+      return;
+    }
+    setBusy(true);
+    setMessage("");
+    const { error } = await businessSupabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: BUSINESS_OS_URL
+    });
+    setMessage(error
+      ? (error.message || "Email reset password gagal dikirim.")
+      : "Email reset password sudah diminta. Periksa Inbox, Spam, atau Promosi.");
+    setBusy(false);
+  }
+
   async function signOut() {
     await businessSupabase?.auth.signOut();
     setAccess(null);
@@ -155,9 +156,11 @@ export default function BusinessOSEntry() {
           {(mode === "signup" || ownerBootstrap) && <label>Kode bootstrap awal<input type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} placeholder="Kode setup owner" autoComplete="off" required /></label>}
           {message && <div className="bos-entry-message">{message}</div>}
           <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : mode === "login" ? <><LogIn size={16}/> Masuk ke Business OS</> : <><ShieldCheck size={16}/> Buat Owner Business OS</>}</button>
-        <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setPendingConfirmation(false);setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
-        {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setPendingConfirmation(false);setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
         </form>
+
+        {mode === "login" && <button type="button" className="bos-store-button" disabled={busy} onClick={resetPassword}><KeyRound size={16}/> Reset password Owner</button>}
+        <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setSetupCode("");setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
+        {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
 
         <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
         <button className="bos-store-button" onClick={goStorefront}><Store size={16}/> Kembali ke website toko JOLIE</button>
@@ -198,7 +201,7 @@ function EntryShell({ children }) {
       .bos-login-button{min-height:43px;border:0;border-radius:10px;background:#08764d;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}.bos-login-button:disabled{opacity:.65;cursor:wait}
       .bos-entry-message{border:1px solid #f0d7c5;background:#fff7ef;color:#79542c;border-radius:10px;padding:10px;font-size:10px;line-height:1.5}
       .bos-security-note{display:flex;gap:8px;align-items:flex-start;margin-top:15px;padding:11px;background:#f2f8f5;border:1px solid #dceae3;border-radius:10px;color:#5c766b;font-size:9px;line-height:1.5}.bos-security-note svg{flex:none;color:#08764d}
-      .bos-store-button{width:100%;margin-top:10px;min-height:40px;border:1px solid #d8e4de;background:#fff;color:#31574a;border-radius:10px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+      .bos-store-button{width:100%;margin-top:10px;min-height:40px;border:1px solid #d8e4de;background:#fff;color:#31574a;border-radius:10px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}.bos-store-button:disabled{opacity:.65;cursor:wait}
       .bos-entry-loading{padding:24px;background:#fff;border:1px solid #dbe8e1;border-radius:16px;color:#49675c;font-weight:800;font-size:12px}
       @media(max-width:520px){.bos-entry-shell{padding:12px}.bos-login{padding:23px;border-radius:18px}.bos-login h1{font-size:24px}}
     `}</style>
