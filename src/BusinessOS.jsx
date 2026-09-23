@@ -250,7 +250,7 @@ export default function BusinessOS({ user, onBack }) {
             products={products} orders={orders} salesTotal={salesTotal} paidTotal={paidTotal}
             paidOrders={paidOrders} pendingOrders={pendingOrders} outOfStock={outOfStock}
             stockTracked={stockTracked} inventoryAccess={inventoryAccess} procurementAccess={procurementAccess}
-            customers={customers} onOpen={setActive}
+            customers={customers} allowedModules={allowedModules} onOpen={setActive}
           />}
 
           {active==="sales" && <Sales orders={orders}/>}
@@ -267,7 +267,7 @@ export default function BusinessOS({ user, onBack }) {
   </div>;
 }
 
-function Overview({ products, orders, salesTotal, paidTotal, paidOrders, pendingOrders, outOfStock, stockTracked, inventoryAccess, procurementAccess, customers, onOpen }) {
+function Overview({ products, orders, salesTotal, paidTotal, paidOrders, pendingOrders, outOfStock, stockTracked, inventoryAccess, procurementAccess, customers, allowedModules, onOpen }) {
   return <>
     <div className="bos-kpis">
       <Kpi icon={CircleDollarSign} label="Nilai pesanan terbaca" value={rupiah(salesTotal)} note={orders.length+" order terbaca"}/>
