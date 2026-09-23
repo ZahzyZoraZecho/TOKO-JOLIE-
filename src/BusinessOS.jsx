@@ -306,7 +306,7 @@ function Overview({ products, orders, salesTotal, paidTotal, paidOrders, pending
 
     <section className="bos-panel" style={{marginTop:12}}><div className="bos-panel-head"><h2>Modul JOLIE Business OS</h2><span>Foundation v1</span></div>
       <div className="bos-module-grid">
-        {visibleModules.filter(m=>m.id!=="overview").map(m=>{const Icon=m.icon;return <div className="bos-module-card" key={m.id}><Icon size={20}/><b>{m.label}</b><span>{m.id==="sales"?"Order, pembayaran, fulfillment dan histori.":m.id==="inventory"?"Gudang, stock ledger, opname dan reorder.":m.id==="procurement"?"Supplier, PO, penerimaan dan biaya pembelian.":m.id==="finance"?"Cashflow, margin, rekonsiliasi dan laporan.":m.id==="crm"?"Pelanggan, loyalty, segmentasi dan komunikasi.":"Insight, anomaly detection dan rekomendasi berbasis data."}</span><button onClick={()=>onOpen(m.id)}>Buka Modul</button></div>})}
+        {allowedModules.filter(m=>m.id!=="overview").map(m=>{const Icon=m.icon;return <div className="bos-module-card" key={m.id}><Icon size={20}/><b>{m.label}</b><span>{m.id==="sales"?"Order, pembayaran, fulfillment dan histori.":m.id==="inventory"?"Gudang, stock ledger, opname dan reorder.":m.id==="procurement"?"Supplier, PO, penerimaan dan biaya pembelian.":m.id==="finance"?"Cashflow, margin, rekonsiliasi dan laporan.":m.id==="crm"?"Pelanggan, loyalty, segmentasi dan komunikasi.":"Insight, anomaly detection dan rekomendasi berbasis data."}</span><button onClick={()=>onOpen(m.id)}>Buka Modul</button></div>})}
       </div>
     </section>
   </>;
