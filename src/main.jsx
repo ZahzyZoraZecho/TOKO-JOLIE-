@@ -8,7 +8,7 @@ import "./styles.css";
 
 const normalized = window.location.pathname.replace(/\/+$/, "");
 const isBusinessOSRoute = normalized.endsWith("/business-os");
-const appMatch = normalized.match(/\/business-os\/(pos|warehouse|sales|procurement|finance|crm|ai|commerce|erp)$/);
+const appMatch = normalized.match(/\/business-os\/(pos|warehouse|sales|procurement|finance|accounting|reports|alerts|crm|ai|seo|commerce|erp)$/);
 const isBusinessAppRoute = Boolean(appMatch);
 const isIntegrationRoute = normalized.endsWith("/business-os/integration-hub");
 
