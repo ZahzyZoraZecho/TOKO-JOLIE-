@@ -325,6 +325,21 @@ function App() {
 @media(max-width:1100px){.app-shell .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}@media(max-width:720px){.app-shell .page-grid{width:calc(100% - 20px)!important}.app-shell .hero{height:360px!important}.app-shell .hero-content{padding:1.6rem!important}.app-shell .hero-content h1{font-size:2rem!important}.app-shell .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.app-shell .product-image{height:145px!important}}
 
 
+
+/* Final storefront layer: Flux/Paws-inspired commerce rhythm using Bootstrap 5 tokens. */
+.app-shell .top-header{backdrop-filter:blur(14px)!important;box-shadow:0 1px 0 rgba(20,55,43,.06),0 10px 30px rgba(20,55,43,.04)!important}
+.app-shell .header-main{width:min(1400px,calc(100% - 40px))!important}
+.app-shell .hero{border-radius:24px!important;box-shadow:0 16px 45px rgba(23,61,47,.12)!important}
+.app-shell .hero-content h1{font-size:clamp(2.7rem,5vw,4.4rem)!important;letter-spacing:-3px!important;font-weight:800!important}
+.app-shell .category-item{border:1px solid #e5ece8!important;border-radius:16px!important;background:#fff!important;transition:.18s ease!important}
+.app-shell .category-item:hover{transform:translateY(-3px)!important;box-shadow:0 10px 24px rgba(8,118,77,.08)!important}
+.app-shell .product-card{border-radius:16px!important;box-shadow:0 6px 22px rgba(20,55,43,.045)!important}
+.app-shell .product-card:hover{transform:translateY(-4px)!important;box-shadow:0 14px 34px rgba(8,118,77,.11)!important}
+.app-shell .product-image{height:205px!important;border-radius:12px!important}
+.app-shell .product-card button{border-radius:999px!important;min-height:40px!important}
+.app-shell .service-strip,.app-shell .promo-card,.app-shell .ai-card,.app-shell .tips-card,.app-shell .register-card{border-radius:16px!important}
+@media(max-width:900px){.app-shell .page-grid{grid-template-columns:1fr!important}.app-shell .side-column{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:640px){.app-shell .side-column{grid-template-columns:1fr!important}.app-shell .hero-content{padding:32px 26px!important}.app-shell .hero-content h1{font-size:2.5rem!important;letter-spacing:-1.8px!important}}
 `;
   return <div className="app-shell"><style>{uiStyle}</style>
     <header className="top-header">
