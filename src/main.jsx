@@ -9,7 +9,7 @@ import "./styles.css";
 function resolveRoute(pathname) {
   const normalized = pathname.replace(/\/+$/, "");
   const isBusinessOSRoute = normalized.endsWith("/business-os");
-  const appMatch = normalized.match(/\/business-os\/(pos|warehouse|sales|procurement|finance|accounting|reports|alerts|crm|ai|seo|commerce|erp|animals)$/);
+  const appMatch = normalized.match(/\/business-os\/(pos|warehouse|sales|procurement|finance|accounting|reports|alerts|crm|ai|seo|commerce|erp|animals|industry-os)$/);
   const isIntegrationRoute = normalized.endsWith("/business-os/integration-hub");
   return {
     isBusinessOSRoute,
