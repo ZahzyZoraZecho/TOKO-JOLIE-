@@ -127,21 +127,33 @@ export default function BusinessApps({appId="launcher",onBack}){
 }
 function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launcher",data,organizationId}){
  const ids=access?(ROLE_APPS[access.role]||[]):[];
+ const groups=[
+  {label:"OPERATIONS",ids:["erp","pos","warehouse","sales","procurement"]},
+  {label:"FINANCE & CONTROL",ids:["finance","accounting","reports","alerts"]},
+  {label:"CUSTOMER & INTELLIGENCE",ids:["crm","ai","seo","commerce"]}
+ ];
  const go=id=>businessGo(id);
- return <div className="biz-app-shell" style={{display:"grid",gridTemplateColumns:"240px minmax(0,1fr)",minHeight:"100vh"}}>
-  <aside className="jolie-app-sidebar" style={{borderRight:"1px solid #dfe7e2",background:"#fbfdfb",padding:"18px 12px",position:"sticky",top:0,height:"100vh",overflowY:"auto"}}>
-   <div style={{display:"flex",alignItems:"center",gap:10,padding:"6px 10px 18px",borderBottom:"1px solid #e6ece8",marginBottom:14}}>
-    <div className="biz-app-mark">J</div><div><b>JOLIE OS</b><small style={{display:"block",opacity:.65}}>{access?.role||"Application"}</small></div>
+ const current=APPS.find(x=>x.id===appId);
+ return <div className="biz-app-shell jolie-admin-shell">
+  <aside className="jolie-app-sidebar jolie-admin-sidebar">
+   <div className="jolie-sidebar-brand"><div className="biz-app-mark">J</div><div><b>JOLIE</b><small>Business OS</small></div></div>
+   <div className="jolie-sidebar-role"><span>ROLE</span><strong>{access?.role||"Application"}</strong></div>
+   <div className="jolie-sidebar-nav">
+    {groups.map(g=><div className="jolie-nav-group" key={g.label}>
+      <div className="jolie-nav-heading">{g.label}</div>
+      {g.ids.filter(id=>ids.includes(id)).map(id=>{const a=APPS.find(x=>x.id===id);if(!a)return null;const I=a.icon;return <button key={id} className={appId===id?"jolie-nav-item active":"jolie-nav-item"} onClick={()=>go(id)}><I size={17}/><span>{a.label.replace("JOLIE ","")}</span>{id==="seo"&&<em>AI</em>}</button>})}
+    </div>)}
    </div>
-   <div style={{fontSize:11,fontWeight:800,letterSpacing:".08em",opacity:.55,padding:"0 10px 8px"}}>APPLICATIONS</div>
-   {ids.map(id=>{const a=APPS.find(x=>x.id===id);if(!a)return null;const I=a.icon;return <button key={id} onClick={()=>go(id)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px",marginBottom:4,borderRadius:9,border:appId===id?"1px solid #a7cbb6":"1px solid transparent",background:appId===id?"#eaf6ee":"transparent",fontWeight:appId===id?800:600,cursor:"pointer",textAlign:"left"}}><I size={17}/><span>{a.label}</span></button>})}
-   <div style={{borderTop:"1px solid #e6ece8",marginTop:14,paddingTop:14}}>
-    <button onClick={()=>go("seo")} style={{width:"100%",display:"flex",alignItems:"center",gap:9,padding:"11px 10px",borderRadius:9,border:"1px solid #8fbd9f",background:"#e6f5eb",fontWeight:800,cursor:"pointer"}}><SearchCode size={18}/> JOLIE AI SEO</button>
-   </div>
+   {ids.includes("seo")&&<button className={appId==="seo"?"jolie-seo-promo active":"jolie-seo-promo"} onClick={()=>go("seo")}><SearchCode size={19}/><span><b>JOLIE AI SEO</b><small>Growth & demand engine</small></span></button>}
+   <button className="jolie-sidebar-back" onClick={onBack}><ArrowLeft size={15}/> Launcher / Login</button>
   </aside>
-  <div style={{minWidth:0}}>
-   <header className="biz-app-top"><div className="biz-app-brand"><div className="biz-app-mark">J</div><div><b>{title}</b><small>{access?.organization_name||"JOLIE"}{access?.role?" · "+access.role:""}</small></div></div><div className="biz-app-actions"><button onClick={onBack}><ArrowLeft size={15}/> Launcher/Login</button>{access?.role&&ROLE_APPS[access.role]?.includes("seo")&&<button className="app-primary" onClick={()=>go("seo")}><SearchCode size={15}/> JOLIE AI SEO</button>}{onRefresh&&<button className="app-primary" onClick={onRefresh} disabled={refreshing}><RefreshCw size={15}/> {refreshing?"Sync…":"Sync"}</button>}</div></header>
-   <main className="biz-app-main">
+  <div className="jolie-admin-body">
+   <header className="biz-app-top jolie-admin-header">
+    <div className="jolie-header-left"><button className="jolie-mobile-menu" onClick={()=>document.body.classList.toggle("jolie-nav-open")} aria-label="Menu">☰</button><div><div className="jolie-breadcrumb"><span>JOLIE Business OS</span><b>/</b><strong>{current?.label||"Application Launcher"}</strong></div><small>{access?.organization_name||"Toko Pakan Jolie Gebang"}{access?.role?" · "+access.role:""}</small></div></div>
+    <div className="jolie-header-search"><SearchCode size={16}/><input aria-label="Cari data JOLIE" placeholder="Cari modul, data, customer, order…"/><kbd>⌘ K</kbd></div>
+    <div className="biz-app-actions jolie-header-actions">{onRefresh&&<button className="jolie-icon-action" onClick={onRefresh} disabled={refreshing} title="Sinkronkan data"><RefreshCw size={16}/></button>}{access?.role&&ROLE_APPS[access.role]?.includes("seo")&&<button className="app-primary jolie-seo-header" onClick={()=>go("seo")}><SearchCode size={15}/> AI SEO</button>}</div>
+   </header>
+   <main className="biz-app-main jolie-admin-main">
     {appId!=="launcher"&&<><AppSubnav appId={appId}/><OperationGuide appId={appId}/><ModuleWorkbench appId={appId} data={data} organizationId={organizationId} onRefresh={onRefresh}/></>}
     {children}
    </main>
