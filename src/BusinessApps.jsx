@@ -114,7 +114,7 @@ function AppSubnav({appId}){
  const fire=op=>{
   const target=operationTarget[active];
   const hash=operationHash[active]||"";
-  const detail={appId,op,label:active,target};
+  const detail={appId:target||appId,sourceAppId:appId,op,label:active,target};
   if(target&&target!==appId){
     businessGo(target);
     window.setTimeout(()=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail})),0);
