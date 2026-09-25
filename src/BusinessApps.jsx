@@ -95,7 +95,21 @@ function AppSubnav({appId}){
   const target=href.replace(/^\.\//,"").replace(/\/$/,"");
   businessGo(target);
  };
- const fire=op=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op,label:active}}));
+ const operationTarget={
+  "Product Master":"commerce","Customer Master":"crm","Supplier":"procurement","Purchase Order":"procurement","Order":"sales","Transaksi":"pos",
+  "Persediaan":"warehouse","Gudang":"warehouse","Payment":"finance","Finance Ledger":"finance","Daftar Akun":"accounting","Jurnal":"accounting","Piutang":"accounting","Hutang":"accounting","Pajak":"accounting","Buku Besar":"accounting",
+  "Peringatan":"alerts","Automation":"alerts","Activities":"crm","Demand & Keyword":"seo","Campaigns":"seo","Content Queue":"seo","Learning":"seo","Experiments":"seo","Hewan & Ternak":"animals","Kesehatan":"animals","Vaksinasi":"animals","Perawatan":"animals","Bobot":"animals","Reproduksi":"animals","Pakan":"animals","Produksi":"animals","AI Forecasting":"animals"
+ };
+ const operationHash={
+  "Daftar Akun":"#accounts","Jurnal":"#journal","Buku Besar":"#ledger","Pajak":"#tax","Demand & Keyword":"#opportunity","Campaigns":"#campaigns","Content Queue":"#queue","Learning":"#learning","Compliance":"#compliance","Experiments":"#experiments","Metrics":"#metrics","Activities":"#activities","Product Master":"#product-master","Customer Master":"#customer-master"
+ };
+ const fire=op=>{
+  const target=operationTarget[active];
+  const hash=operationHash[active]||"";
+  window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op,label:active,target}}));
+  if(target&&target!==appId){ businessGo(target); }
+  if(hash){ setTimeout(()=>{ window.location.hash=hash.slice(1); window.dispatchEvent(new Event("jolie-route-change")); },80); }
+ };
  const actions=SUBNAV_OPERATIONS[active]||[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]];
  return <nav className="app-subnav" aria-label="Navigasi modul"><div className="app-subnav-items">{items.map(item=><button className={"app-subnav-item"+(active===item[0]?" active":"")} key={item[0]} onClick={()=>go(item)}>{item[0]}</button>)}</div><div className="app-subnav-actions" aria-label={"Operasi "+active}><span className="app-note">{active||"Data"} · operational</span>{actions.map(([op,label])=><button key={op} className={op==="insert"||op==="feedback"?"app-primary":op==="delete"||op==="cancel"||op==="refund"?"app-warn":"app-btn"} onClick={()=>fire(op)}>{label}</button>)}</div></nav>
 }
