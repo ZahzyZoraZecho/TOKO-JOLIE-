@@ -116,6 +116,7 @@ function App() {
   const [orderMessage, setOrderMessage] = React.useState("");
   const [chatOpen, setChatOpen] = React.useState(true);
   const [aiMessage, setAiMessage] = React.useState("");
+  const [aiBusy, setAiBusy] = React.useState(false);
   const [aiInput, setAiInput] = React.useState("");
   const [vetInput, setVetInput] = React.useState({ animal:"", age:"", symptoms:"", duration:"" });
   const [vetMessage, setVetMessage] = React.useState("");
@@ -242,22 +243,40 @@ function App() {
   }
 
   async function askAi(text = aiInput) {
-    const reply = buildAiReply(text, catalogProducts, user);
-    setAiMessage(reply);
-    if (user && /status|pesanan|order/i.test(text)) {
-      const { data, error } = await supabase
+    const question = String(text || "").trim();
+    if (!question) return;
+    setAiBusy(true);
+    setAiMessage("");
+    let customerOrders = [];
+    if (user && /status|pesanan|order/i.test(question)) {
+      const { data } = await supabase
         .from("sales_orders")
         .select("order_number,status,payment_status,created_at,total")
         .eq("user_id", user.id)
         .order("created_at", { ascending:false })
         .limit(3);
-      if (!error && data?.length) {
-        setAiMessage("Pesanan terbaru Anda:\n" + data.map(o =>
+      customerOrders = data || [];
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke("jolie-ai-companion", {
+        body: { message: question, customer_orders: customerOrders, user_id: user?.id || null }
+      });
+      if (error) throw error;
+      let reply = data?.reply || "";
+      if (customerOrders.length) {
+        reply += "\n\nPesanan terbaru Anda:\n" + customerOrders.map(o =>
           (o.order_number || "Pesanan") + " — " + (o.status || "status belum ada") + " — pembayaran " + (o.payment_status || "belum ada")
-        ).join("\n"));
-      } else if (!error) {
-        setAiMessage("Belum ada pesanan yang ditemukan pada akun Anda.");
+        ).join("\n");
+      } else if (user && /status|pesanan|order/i.test(question)) {
+        reply += "\n\nBelum ada pesanan yang ditemukan pada akun Anda.";
       }
+      if (data?.degraded) reply += "\n\nCatatan: mesin AI generatif belum tersambung; sistem sedang menggunakan mode terbatas.";
+      setAiMessage(reply || buildAiReply(question, catalogProducts, user));
+    } catch (err) {
+      setAiMessage(buildAiReply(question, catalogProducts, user) + "\n\nAI Companion sedang mengalami gangguan koneksi; jawaban di atas berasal dari mode katalog lokal.");
+    } finally {
+      setAiBusy(false);
+      setAiInput("");
     }
   }
 
@@ -413,7 +432,7 @@ function App() {
       <aside className="side-column">
         <div className="ai-card" id="ai-advisor"><div className="ai-head"><div className="ai-avatar"><Bot size={30} strokeWidth={1.8}/></div><div><h3>JOLIE AI Companion</h3><p>Asisten JOLIE untuk produk, kebutuhan ternak, dan layanan.</p></div></div>
           <div className="quick-actions">{["Rekomendasi pakan sesuai jenis ternak","Hitung kebutuhan pakan","Cek status pesanan saya","Panduan perawatan ternak","Tanya seputar produk dan layanan"].map(x=><button key={x} onClick={()=>askAi(x)}><MessageCircle size={14}/>{x}</button>)}</div>
-          {aiMessage && <div className="ai-response">{aiMessage}</div>}
+          {aiMessage && <div className="ai-response">{aiBusy ? "JOLIE AI sedang membaca katalog dan sumber pengetahuan..." : aiMessage}</div>}
           <div className="chat-input"><input value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&askAi()} placeholder="Tulis pesan Anda..."/><button onClick={()=>askAi()}><Send size={15}/></button></div>
         </div>
         <div className="vet-card"><span className="premium">SAFE TRIAGE</span><Sparkles size={22}/><h3>Dokter Hewan Virtual</h3><p>Asisten informasi awal untuk membantu menyusun keluhan. Bukan pengganti pemeriksaan dokter hewan.</p>
