@@ -2,7 +2,7 @@ import React from "react";
 import {
   Search, MapPin, UserRound, ShoppingCart, Menu, ChevronDown, ArrowRight,
   Truck, ShieldCheck, Headphones, Home, Sparkles, MessageCircle, Send, X,
-  LogOut, Minus, Plus
+  LogOut, Minus, Plus, Leaf, Wheat, Beef, Fish, Bird, Pill, Package, Wrench, Bot, UserRoundPlus, BadgeCheck
 } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import BusinessOS from "./BusinessOS";
@@ -15,6 +15,18 @@ const heroImage = "https://images.unsplash.com/photo-1500595046743-cd271d694d30?
 const STORE_ADDRESS = "Jalan Raya Taji–Tinggang, Desa Sukorejo, Kecamatan Tambakrejo, Kabupaten Bojonegoro";
 const STORE_WA = "6285235356666";
 const STORE_MAP = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(STORE_ADDRESS);
+
+function categoryIcon(name) {
+  const n = String(name || "").toLowerCase();
+  if (/ayam|unggas|poultry/.test(n)) return <Bird size={30} strokeWidth={1.8}/>;
+  if (/sapi|kerbau|ruminansia/.test(n)) return <Beef size={30} strokeWidth={1.8}/>;
+  if (/kambing|domba/.test(n)) return <Wheat size={30} strokeWidth={1.8}/>;
+  if (/ikan|fish|perikanan/.test(n)) return <Fish size={30} strokeWidth={1.8}/>;
+  if (/obat|vitamin|kesehatan/.test(n)) return <Pill size={30} strokeWidth={1.8}/>;
+  if (/aksesori|aksesoris|peralatan|alat/.test(n)) return <Wrench size={30} strokeWidth={1.8}/>;
+  if (/pakan|ternak|peternakan|pertanian/.test(n)) return <Wheat size={30} strokeWidth={1.8}/>;
+  return <Package size={30} strokeWidth={1.8}/>;
+}
 
 function productArt(label, kind = "feed") {
   const bg = kind === "fish" ? "#dff4f6" : kind === "pet" ? "#f8eee4" : "#edf7f1";
@@ -267,7 +279,7 @@ function App() {
   return <div className="app-shell"><style>{uiStyle}</style>
     <header className="top-header">
       <div className="header-main container">
-        <div className="brand"><div className="brand-mark">🌿</div><div><strong>JOLIE</strong><span>Pakan & Kebutuhan Ternak</span></div></div>
+        <div className="brand"><div className="brand-mark"><Leaf size={22} strokeWidth={2.2}/></div><div><strong>JOLIE</strong><span>Pakan & Kebutuhan Ternak</span></div></div>
         <div className="search-box"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&scrollTo("produk")} placeholder="Cari produk, kategori, atau kebutuhan ternak..."/><button aria-label="Cari" onClick={()=>scrollTo("produk")}><Search size={17}/></button></div>
         <button className="header-action" onClick={openStoreMap}><MapPin size={18}/><div><b>Lokasi Toko</b><span>Jalan Raya Taji–Tinggang</span></div></button>
         <button className="header-action account" onClick={()=>setAuthOpen(true)}><UserRound size={18}/><div><b>{user ? "Akun Saya" : "Masuk / Buat Akun"}</b><span>{user?.email || "Masuk ke JOLIE"}</span></div></button>
@@ -290,11 +302,11 @@ function App() {
           <h1>Pakan Berkualitas<br/>untuk Hasil Maksimal</h1>
           <span>Mendukung peternakan, perikanan, dan pertanian Anda<br/>dengan produk terbaik, harga bersaing, dan layanan profesional.</span>
           <button className="primary-btn" onClick={()=>scrollTo("produk")}>Belanja Sekarang <ArrowRight size={18}/></button>
-          <div className="hero-points"><span>◉ Produk Original</span><span>✦ Harga Terbaik</span><span>▣ Pengiriman Cepat</span><span>◉ Layanan Konsultasi</span></div>
+          <div className="hero-points"><span><BadgeCheck size={13}/> Produk Original</span><span><BadgeCheck size={13}/> Harga Terbaik</span><span><Truck size={13}/> Pengiriman Cepat</span><span><Headphones size={13}/> Layanan Konsultasi</span></div>
         </div></section>
 
         <section className="section-card category-section" id="kategori"><div className="section-heading"><h2>Kategori Produk</h2><a href="#kategori" onClick={e=>{e.preventDefault();document.getElementById("kategori")?.scrollIntoView({behavior:"smooth"})}}>Lihat Semua <ArrowRight size={15}/></a></div>
-          <div className="category-grid">{categories.map(c=><button className="category-item" key={c.id} onClick={()=>{setQuery(c.name);scrollTo("produk")}}><div>{c.icon || "•"}</div><span>{c.name}</span></button>)}</div>
+          <div className="category-grid">{categories.map(c=><button className="category-item" key={c.id} onClick={()=>{setQuery(c.name);scrollTo("produk")}}><div aria-hidden="true">{categoryIcon(c.name)}</div><span>{c.name}</span></button>)}</div>
           {!loading && categories.length===0 && <p className="catalog-empty">Kategori belum tersedia.</p>}
         </section>
 
@@ -337,7 +349,7 @@ function App() {
       </section>
 
       <aside className="side-column">
-        <div className="ai-card" id="ai-advisor"><div className="ai-head"><div className="ai-avatar">👩🏻‍💼</div><div><h3>JOLIE AI Companion</h3><p>Asisten JOLIE untuk produk, kebutuhan ternak, dan layanan.</p></div></div>
+        <div className="ai-card" id="ai-advisor"><div className="ai-head"><div className="ai-avatar"><Bot size={30} strokeWidth={1.8}/></div><div><h3>JOLIE AI Companion</h3><p>Asisten JOLIE untuk produk, kebutuhan ternak, dan layanan.</p></div></div>
           <div className="quick-actions">{["Rekomendasi pakan sesuai jenis ternak","Hitung kebutuhan pakan","Cek status pesanan saya","Panduan perawatan ternak","Tanya seputar produk dan layanan"].map(x=><button key={x} onClick={()=>askAi(x)}><MessageCircle size={14}/>{x}</button>)}</div>
           {aiMessage && <div className="ai-response">{aiMessage}</div>}
           <div className="chat-input"><input value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&askAi()} placeholder="Tulis pesan Anda..."/><button onClick={()=>askAi()}><Send size={15}/></button></div>
@@ -345,7 +357,7 @@ function App() {
         <div className="vet-card"><span className="premium">SAFE TRIAGE</span><Sparkles size={22}/><h3>Dokter Hewan Virtual</h3><p>Asisten informasi awal untuk membantu menyusun keluhan. Bukan pengganti pemeriksaan dokter hewan.</p>
           <div className="vet-form"><input value={vetInput.animal} onChange={e=>setVetInput(v=>({...v,animal:e.target.value}))} placeholder="Jenis hewan"/><input value={vetInput.age} onChange={e=>setVetInput(v=>({...v,age:e.target.value}))} placeholder="Usia (opsional)"/><input value={vetInput.symptoms} onChange={e=>setVetInput(v=>({...v,symptoms:e.target.value}))} placeholder="Gejala/keluhan"/><input value={vetInput.duration} onChange={e=>setVetInput(v=>({...v,duration:e.target.value}))} placeholder="Sejak kapan?"/><button onClick={runVet}>Analisis Awal <ArrowRight size={15}/></button></div>
           {vetMessage && <div className="vet-response">{vetMessage}</div>}</div>
-        <div className="register-card"><div><h3>{user ? "Anda sudah terdaftar" : "Jadi Pelanggan Terdaftar"}</h3><p>Pesanan, profil, alamat, dan loyalty akan tersimpan aman setelah login.</p><button onClick={()=>user?signOut():(setAuthMode("signup"),setAuthOpen(true))}>{user ? "Keluar" : "Daftar Sekarang"}</button></div><span>👨🏻‍🌾</span></div>
+        <div className="register-card"><div><h3>{user ? "Anda sudah terdaftar" : "Jadi Pelanggan Terdaftar"}</h3><p>Pesanan, profil, alamat, dan loyalty akan tersimpan aman setelah login.</p><button onClick={()=>user?signOut():(setAuthMode("signup"),setAuthOpen(true))}>{user ? "Keluar" : "Daftar Sekarang"}</button></div><span className="register-icon"><UserRoundPlus size={34} strokeWidth={1.7}/></span></div>
         <div className="tips-card" id="artikel"><div className="section-heading"><h3>Info & Tips Terbaru</h3><a href="#artikel" onClick={e=>{e.preventDefault();setArticleOpen("all")}}>Lihat Semua <ArrowRight size={13}/></a></div>
           <button className="tip-article" onClick={()=>setArticleOpen("feed")}><div className="tip-placeholder">PAKAN</div><div><b>Memilih pakan sesuai kebutuhan ternak</b><span>Checklist praktis JOLIE</span></div></button>
           <button className="tip-article" onClick={()=>setArticleOpen("storage")}><div className="tip-placeholder">SIMPAN</div><div><b>Menjaga pakan tetap kering dan bersih</b><span>Manajemen penyimpanan</span></div></button>
