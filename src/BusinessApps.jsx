@@ -4,6 +4,7 @@ import { businessSupabase } from "./lib/supabase";
 import AnimalCare from "./AnimalCare";
 
 // JOLIE Business OS: operational CRUD + stable table renderer
+// Production baseline: CRUD console + AI SEO navigation.
 const APPS = [
  {id:"erp",label:"JOLIE ERP",desc:"Command center lintas fungsi",icon:LayoutDashboard},
  {id:"pos",label:"JOLIE POS",desc:"Kasir dan transaksi",icon:ShoppingCart},
