@@ -313,3 +313,50 @@ button,input,select,textarea{font-family:inherit}
  .jolie-admin-main .form-grid{grid-template-columns:1fr!important}
  .jolie-admin-main .app-launch-grid{grid-template-columns:1fr!important}
 }
+
+/* JOLIE STOREFRONT v2 — catalog-first ecommerce redesign.
+   UX direction inspired by the MIT-licensed Tailwind E-commerce reference;
+   all JOLIE styling is implemented natively. */
+.app-shell{--j2-ink:#17241f;--j2-muted:#687770;--j2-line:#e5ebe8;--j2-green:#0b6b46;--j2-orange:#f4a340;background:#f5f7f6!important;color:var(--j2-ink)!important}
+.app-shell .top-header{background:#fff!important;border-bottom:1px solid var(--j2-line)!important;box-shadow:0 2px 12px rgba(23,36,31,.04)!important}
+.app-shell .header-main{width:min(1440px,calc(100% - 48px))!important;height:80px!important;grid-template-columns:190px minmax(280px,1fr) auto auto auto!important;gap:14px!important}
+.app-shell .brand strong{font-size:28px!important;letter-spacing:-1.5px!important;color:var(--j2-ink)!important}.app-shell .brand span{color:var(--j2-muted)!important;font-size:9px!important}
+.app-shell .brand-mark{width:42px!important;height:42px!important;border-radius:12px!important;background:#e8f4ee!important;color:var(--j2-green)!important}
+.app-shell .search-box{height:46px!important;border-radius:9px!important;background:#f7f9f8!important;border:1px solid #dfe7e3!important}
+.app-shell .search-box button{width:38px!important;height:38px!important;border-radius:8px!important;background:var(--j2-green)!important}
+.app-shell .header-action,.app-shell .header-cart{border:1px solid transparent!important;border-radius:8px!important;padding:9px 11px!important}
+.app-shell .header-action:hover,.app-shell .header-cart:hover{background:#f0f6f3!important;border-color:#dbe7e1!important}
+.app-shell .nav-row{background:#fff!important;border-top:1px solid #eef2f0!important;border-bottom:1px solid var(--j2-line)!important}
+.app-shell .nav-inner{width:min(1440px,calc(100% - 48px))!important;height:50px!important}.app-shell .category-btn{height:36px!important;border-radius:8px!important;background:var(--j2-green)!important}
+.app-shell .nav-inner nav{gap:25px!important}.app-shell .nav-inner a{color:#4e625a!important;font-size:11px!important;font-weight:700!important;border-bottom:2px solid transparent!important}
+.app-shell .nav-inner a:hover,.app-shell .nav-inner a.active{color:var(--j2-green)!important;border-bottom-color:var(--j2-green)!important}
+.app-shell .promo-banner{background:#102c23!important;min-height:38px!important;padding:8px 18px!important;font-size:10px!important}
+.app-shell .page-grid{width:min(1440px,calc(100% - 48px))!important;grid-template-columns:minmax(0,1fr) 300px!important;gap:18px!important;padding-top:18px!important}
+.app-shell .hero{height:390px!important;border-radius:14px!important;box-shadow:none!important;border:1px solid #dce5e0!important}
+.app-shell .hero-overlay{background:linear-gradient(90deg,rgba(5,45,32,.94),rgba(5,45,32,.62),rgba(5,45,32,.08))!important}
+.app-shell .hero-content{padding:42px!important;max-width:690px!important}.app-shell .hero-content p{font-size:10px!important;letter-spacing:.16em!important;font-weight:800!important;color:#bce6d1!important}
+.app-shell .hero-content h1{font-size:clamp(2.7rem,5vw,4.35rem)!important;line-height:.96!important;letter-spacing:-3px!important;font-weight:850!important}
+.app-shell .hero-content>span{font-size:12px!important;line-height:1.65!important;color:#e5f1eb!important}
+.app-shell .primary-btn,.app-shell .hero-content button{border-radius:8px!important;background:var(--j2-orange)!important;color:#17241f!important;padding:12px 18px!important}
+.app-shell .hero-points span{padding:6px 9px!important;border:1px solid rgba(255,255,255,.16)!important;border-radius:7px!important;background:rgba(255,255,255,.08)!important}
+.app-shell .section-card,.app-shell .products-section,.app-shell .info-card,.app-shell .ai-card,.app-shell .tips-card{border:1px solid var(--j2-line)!important;border-radius:12px!important;box-shadow:0 2px 8px rgba(23,36,31,.025)!important;background:#fff!important}
+.app-shell .section-card,.app-shell .products-section{padding:18px!important}.app-shell .section-heading h2{font-size:18px!important;font-weight:800!important}
+.app-shell .category-grid{grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:8px!important}.app-shell .category-item{min-height:105px!important;border:1px solid #e6ece9!important;border-radius:10px!important;background:#fff!important;padding:10px 5px!important}
+.app-shell .category-item:hover{border-color:#9fcbb4!important;background:#f3faf6!important;transform:translateY(-2px)!important}.app-shell .category-item div{width:54px!important;height:54px!important;border-radius:50%!important;background:#edf6f1!important;color:var(--j2-green)!important}
+.app-shell .products-section{margin-top:14px!important}.app-shell .product-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important}
+.app-shell .product-card{border:1px solid #e0e7e4!important;border-radius:10px!important;background:#fff!important;padding:10px!important;box-shadow:none!important;transition:.16s ease!important}
+.app-shell .product-card:hover{transform:translateY(-3px)!important;border-color:#a9cdb9!important;box-shadow:0 8px 24px rgba(11,107,70,.08)!important}
+.app-shell .product-image{height:190px!important;border-radius:8px!important;background:#f4f6f5!important}.app-shell .product-card h3{font-size:12px!important;line-height:1.3!important;margin:10px 0 3px!important}
+.app-shell .product-card small,.app-shell .product-desc{font-size:9px!important;color:#6c7a74!important}.app-shell .product-desc{min-height:36px!important}
+.app-shell .product-card>strong{display:block!important;font-size:14px!important;color:var(--j2-green)!important;margin:7px 0!important}
+.app-shell .product-actions button,.app-shell .ask-price{min-height:36px!important;border-radius:7px!important;font-size:9px!important}
+.app-shell .product-actions>button:first-child{width:36px!important;flex-basis:36px!important;background:#edf6f1!important;color:var(--j2-green)!important}
+.app-shell .product-actions>button:last-child,.app-shell .ask-price{background:var(--j2-green)!important;color:#fff!important;border-color:var(--j2-green)!important}
+.app-shell .side-column{gap:12px!important}.app-shell .ai-card,.app-shell .tips-card{padding:14px!important}
+.app-shell .ai-head{background:#edf7f2!important;border:1px solid #d8eae0!important;border-radius:9px!important}.app-shell .quick-actions button{border:1px solid #e1e8e5!important;border-radius:7px!important;background:#fff!important}
+.app-shell .register-card{border-radius:12px!important;background:#102c23!important;color:#fff!important;border:0!important}.app-shell .register-card p{color:#cfe2d9!important}
+.app-shell .register-card button{border-radius:7px!important;background:var(--j2-orange)!important;color:#17241f!important}
+.app-shell .sticky-cart{border-radius:10px!important;box-shadow:0 12px 35px #0003!important;border:1px solid #cadbd2!important}.app-shell .sticky-cart button{border-radius:7px!important;background:var(--j2-green)!important}
+@media(max-width:1180px){.app-shell .category-grid{grid-template-columns:repeat(4,1fr)!important}.app-shell .product-grid{grid-template-columns:repeat(3,1fr)!important}}
+@media(max-width:900px){.app-shell .page-grid{width:calc(100% - 28px)!important;grid-template-columns:1fr!important}.app-shell .header-main,.app-shell .nav-inner{width:calc(100% - 28px)!important}.app-shell .side-column{display:grid!important;grid-template-columns:1fr 1fr!important}}
+@media(max-width:640px){.app-shell .header-main{width:calc(100% - 18px)!important;grid-template-columns:110px 1fr auto!important}.app-shell .nav-inner{width:calc(100% - 18px)!important}.app-shell .page-grid{width:calc(100% - 18px)!important}.app-shell .hero{height:410px!important}.app-shell .hero-content{padding:27px 22px!important}.app-shell .hero-content h1{font-size:2.45rem!important;letter-spacing:-2px!important}.app-shell .category-grid{grid-template-columns:repeat(4,1fr)!important}.app-shell .product-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important}.app-shell .product-image{height:150px!important}.app-shell .side-column{grid-template-columns:1fr!important}}
