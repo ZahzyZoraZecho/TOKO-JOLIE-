@@ -1,6 +1,7 @@
 import React from "react";
 import { ArrowLeft, Boxes, BrainCircuit, CircleDollarSign, ClipboardList, Database, LayoutDashboard, RefreshCw, ShoppingBag, ShoppingCart, Store, Users, Plus, Minus, ShieldCheck, SearchCode, WalletCards, FileBarChart, BellRing, UserRoundCog, ReceiptText } from "lucide-react";
 import { businessSupabase } from "./lib/supabase";
+import AnimalCare from "./AnimalCare";
 
 // JOLIE Business OS: operational CRUD + stable table renderer
 const APPS = [
@@ -16,7 +17,8 @@ const APPS = [
  {id:"crm",label:"JOLIE CRM",desc:"Pelanggan dan follow-up",icon:UserRoundCog},
  {id:"ai",label:"JOLIE AI",desc:"Intelligence lintas aplikasi",icon:BrainCircuit},
  {id:"seo",label:"JOLIE AI SEO",desc:"Demand, opportunity dan campaign",icon:SearchCode},
- {id:"commerce",label:"JOLIE Commerce",desc:"Website dan e-commerce",icon:Store}
+ {id:"commerce",label:"JOLIE Commerce",desc:"Website dan e-commerce",icon:Store},
+ {id:"animals",label:"JOLIE Animal & Vet",desc:"Recording, kesehatan, vaksinasi, produksi dan AI forecasting",icon:ShieldCheck}
 ];
 
 const APP_SUBNAV={
@@ -32,10 +34,11 @@ const APP_SUBNAV={
  crm:[["Customer Master","./"],["Activities","./#activities"],["Sales","./sales/"]],
  ai:[["AI Insight","./"],["AI SEO","./seo/"]],
  seo:[["Overview","./#overview"],["Demand & Keyword","./#opportunity"],["Campaigns","./#campaigns"],["Content Queue","./#queue"],["Learning","./#learning"],["Compliance","./#compliance"],["Experiments","./#experiments"],["Metrics","./#metrics"]],
- commerce:[["Product Master","./"],["Storefront","../../../TOKO-JOLIE-/"]]
+ commerce:[["Product Master","./"],["Storefront","../../../TOKO-JOLIE-/"]],
+ animals:[["Hewan & Ternak","./#animals"],["Kesehatan","./#health"],["Vaksinasi","./#vaccination"],["Perawatan","./#treatment"],["Bobot","./#weights"],["Reproduksi","./#breeding"],["Pakan","./#feed"],["Produksi","./#production"],["AI Forecasting","./#forecast"],["Laporan","./#reports"]]
 };
 function AppSubnav({appId}){const items=APP_SUBNAV[appId]||[];const [active,setActive]=React.useState(items[0]?.[0]||"");const go=([label,href])=>{setActive(label);window.dispatchEvent(new CustomEvent("jolie-subnav",{detail:{appId,label,href}}));if(href.includes("#")){window.location.hash=href.slice(1);return;}if(href==="."||href==="./"||href===""){return;}const target=href.replace(/^\.\//,"").replace(/\/$/,"");businessGo(target);};const fire=op=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op}}));const readonly=["Ringkasan","Overview","AI Insight","Metrics","Laporan","Finance Ledger","Buku Besar","Google Compliance","Search Metrics"];const isReadonly=readonly.includes(active);return <nav className="app-subnav" aria-label="Navigasi modul"><div className="app-subnav-items">{items.map(item=><button className={"app-subnav-item"+(active===item[0]?" active":"")} key={item[0]} onClick={()=>go(item)}>{item[0]}</button>)}</div><div className="app-subnav-actions" aria-label="Operasi submenu">{isReadonly?<><span className="app-note">Read-only / audit · data diubah dari modul sumber.</span><button onClick={()=>fire("view")}>↻ Refresh</button></>:<><span className="app-note">{active||"Data"} · CRUD</span><button onClick={()=>fire("view")}>Daftar</button><button className="app-primary" onClick={()=>fire("insert")}>＋ Insert</button><button onClick={()=>fire("update")}>Detail / Update</button><button className="app-warn" onClick={()=>fire("delete")}>Delete</button></>}</div></nav>}
-const ROLE_APPS={owner:APPS.map(x=>x.id),admin:APPS.map(x=>x.id),manager:["erp","pos","warehouse","sales","procurement","finance","accounting","reports","alerts","crm","ai","seo","commerce"],sales:["erp","pos","sales","reports","ai","commerce"],inventory:["erp","warehouse","reports","alerts","ai","commerce"],procurement:["erp","procurement","warehouse","reports","alerts","ai"],finance:["erp","finance","accounting","reports","alerts","ai"],crm:["erp","crm","reports","alerts","ai","commerce"]};
+const ROLE_APPS={owner:APPS.map(x=>x.id),admin:APPS.map(x=>x.id),manager:["erp","pos","warehouse","sales","procurement","finance","accounting","reports","alerts","crm","ai","seo","commerce"],sales:["erp","pos","sales","reports","ai","commerce"],inventory:["erp","warehouse","reports","alerts","ai","commerce"],procurement:["erp","procurement","warehouse","reports","alerts","ai"],finance:["erp","finance","accounting","reports","alerts","ai"],crm:["erp","crm","reports","alerts","ai","commerce"],animals:["erp","animals","reports","alerts","ai","commerce"]};
 function rupiah(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v||0));}
 function date(v){return v?new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(v)):"—";}
 
@@ -123,14 +126,14 @@ export default function BusinessApps({appId="launcher",onBack}){
  if(!access)return <Shell title="Akses belum tersedia" onBack={onBack}><Panel><ShieldCheck size={30}/><h2>Role staff belum tersedia</h2><p>{error}</p><button className="app-btn" onClick={onBack}>Kembali ke login Business OS</button></Panel></Shell>;
  const allowed=appId==="launcher" || (ROLE_APPS[access.role]||[]).includes(appId);
  if(!allowed)return <Shell title="Aplikasi dibatasi" access={access} onBack={onBack}><Panel><ShieldCheck size={30}/><h2>Aplikasi tidak tersedia untuk role {access.role}</h2><p>Launcher dan RLS sama-sama membatasi akses.</p></Panel></Shell>;
- return <Shell title={appId==="launcher"?"JOLIE Application Launcher":(APPS.find(x=>x.id===appId)?.label||"JOLIE Business App")} access={access} appId={appId} data={data} organizationId={access.organization_id} onBack={onBack} onRefresh={load} refreshing={refreshing}>{error&&<div className="app-error">{error}</div>}{appId==="launcher"&&<Launcher access={access}/>} {appId==="erp"&&<ERP data={data}/>} {appId==="pos"&&<POS products={data.products} customers={data.customers} onRefresh={load}/>} {appId==="warehouse"&&<Warehouse products={data.products} inventory={data.inventory} warehouses={data.warehouses} onRefresh={load}/>} {appId==="sales"&&<Sales orders={data.orders} customers={data.customers} onRefresh={load}/>} {appId==="procurement"&&<Procurement suppliers={data.suppliers} purchaseOrders={data.purchaseOrders} warehouses={data.warehouses} onRefresh={load}/>} {appId==="finance"&&<Finance payments={data.payments} ledger={data.ledger} onRefresh={load}/>} {appId==="accounting"&&<Accounting accounts={data.accounts} journals={data.journals} taxes={data.taxes} organizationId={access.organization_id} onRefresh={load}/>} {appId==="reports"&&<Reports data={data}/>} {appId==="alerts"&&<Alerts alerts={data.alerts} onRefresh={load}/>} {appId==="seo"&&<AISEO data={data} organizationId={access.organization_id} onRefresh={load}/>} {appId==="crm"&&<CRM customers={data.customers} activities={data.activities} onRefresh={load}/>} {appId==="ai"&&<><AI data={data}/><AIChat data={data}/></>} {appId==="commerce"&&<Commerce products={data.products} organizationId={access.organization_id} onRefresh={load}/>}</Shell>;
+ return <Shell title={appId==="launcher"?"JOLIE Application Launcher":(APPS.find(x=>x.id===appId)?.label||"JOLIE Business App")} access={access} appId={appId} data={data} organizationId={access.organization_id} onBack={onBack} onRefresh={load} refreshing={refreshing}>{error&&<div className="app-error">{error}</div>}{appId==="launcher"&&<Launcher access={access}/>} {appId==="erp"&&<ERP data={data}/>} {appId==="pos"&&<POS products={data.products} customers={data.customers} onRefresh={load}/>} {appId==="warehouse"&&<Warehouse products={data.products} inventory={data.inventory} warehouses={data.warehouses} onRefresh={load}/>} {appId==="sales"&&<Sales orders={data.orders} customers={data.customers} onRefresh={load}/>} {appId==="procurement"&&<Procurement suppliers={data.suppliers} purchaseOrders={data.purchaseOrders} warehouses={data.warehouses} onRefresh={load}/>} {appId==="finance"&&<Finance payments={data.payments} ledger={data.ledger} onRefresh={load}/>} {appId==="accounting"&&<Accounting accounts={data.accounts} journals={data.journals} taxes={data.taxes} organizationId={access.organization_id} onRefresh={load}/>} {appId==="reports"&&<Reports data={data}/>} {appId==="alerts"&&<Alerts alerts={data.alerts} onRefresh={load}/>} {appId==="seo"&&<AISEO data={data} organizationId={access.organization_id} onRefresh={load}/>} {appId==="crm"&&<CRM customers={data.customers} activities={data.activities} onRefresh={load}/>} {appId==="ai"&&<><AI data={data}/><AIChat data={data}/></>} {appId==="commerce"&&<Commerce products={data.products} organizationId={access.organization_id} onRefresh={load}/>} {appId==="animals"&&<AnimalCare data={data} organizationId={access.organization_id} onRefresh={load}/>}</Shell>;
 }
 function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launcher",data,organizationId}){
  const ids=access?(ROLE_APPS[access.role]||[]):[];
  const groups=[
   {label:"OPERATIONS",ids:["erp","pos","warehouse","sales","procurement"]},
   {label:"FINANCE & CONTROL",ids:["finance","accounting","reports","alerts"]},
-  {label:"CUSTOMER & INTELLIGENCE",ids:["crm","ai","seo","commerce"]}
+  {label:"CUSTOMER & INTELLIGENCE",ids:["crm","ai","seo","commerce","animals"]}
  ];
  const go=id=>businessGo(id);
  const current=APPS.find(x=>x.id===appId);
