@@ -354,9 +354,8 @@ function App() {
         <button className="category-btn" onClick={()=>setMegaOpen(v=>!v)}><Menu size={18}/> Semua Kategori <ChevronDown size={16}/></button>
         <nav>{[
           ["Beranda","beranda"],["Produk","produk"],["Layanan","layanan"],["AI Advisor","ai-advisor"],
-          ["Artikel & Tips","artikel"],["Tentang Kami","tentang"],["Kontak","kontak"],
-          ["Business OS","business-os"]
-        ].map(([n,id],i)=><a key={n} className={i===0?"active":""} href={"#"+id} onClick={e=>{e.preventDefault();if(id==="business-os"){window.location.href="./business-os/";return;}scrollTo(id)}}>{n}{n==="Produk"||n==="Layanan"?<ChevronDown size={12}/>:null}</a>)}</nav>
+          ["Artikel & Tips","artikel"],["Tentang Kami","tentang"],["Kontak","kontak"]
+        ].map(([n,id],i)=><a key={n} className={i===0?"active":""} href={"#"+id} onClick={e=>{e.preventDefault();scrollTo(id)}}>{n}{n==="Produk"||n==="Layanan"?<ChevronDown size={12}/>:null}</a>)}</nav>
       </div></div>
       {megaOpen&&<div className="mega-menu"><div className="container"><div className="mega-grid">{categories.map(c=><button key={c.id} onClick={()=>{setActiveCategory(c.id);setQuery("");setMegaOpen(false);scrollTo("produk")}}><span>{categoryIcon(c.name)}</span><b>{c.name}</b><small>Lihat produk</small></button>)}<button onClick={()=>{setActiveCategory("");setMegaOpen(false);scrollTo("produk")}}><span>▦</span><b>Semua Produk</b><small>Seluruh katalog</small></button></div></div></div>}
     </header>
