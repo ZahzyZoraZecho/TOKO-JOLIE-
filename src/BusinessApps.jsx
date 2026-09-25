@@ -93,7 +93,10 @@ function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launche
 }
 function OperationGuide({appId}){
  const fire=op=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op}}));
- return <Panel><div className="biz-panel-head"><div><h3>Operasional Modul</h3><small>Gunakan navigasi ini untuk mengelola data: lihat, insert, update, dan delete. Aksi diterapkan ke tabel modul yang aktif.</small></div><div className="form-actions"><button className="app-btn" onClick={()=>fire("view")}>View / Daftar</button><button className="app-primary" onClick={()=>fire("insert")}>＋ Insert</button><button className="app-btn" onClick={()=>fire("update")}>Update</button><button className="app-warn" onClick={()=>fire("delete")}>Delete</button></div></div></Panel>}
+ const crud=["erp","pos","warehouse","sales","procurement","finance","accounting","alerts","crm","seo","commerce"].includes(appId);
+ if(!crud)return <Panel><div className="biz-panel-head"><div><h3>Workspace Operasional</h3><small>{appId==="reports"?"Laporan bersifat read-only terhadap data sumber. Gunakan filter, sinkronisasi, dan cetak; perubahan data dilakukan di modul transaksi/master terkait.":"AI workspace menggunakan aksi percakapan dan analisis, bukan CRUD langsung pada tabel bisnis."}</small></div><div className="form-actions"><button className="app-btn" onClick={()=>window.location.reload()}>Refresh</button>{appId==="reports"&&<button className="app-primary" onClick={()=>window.print()}>Cetak</button>}</div></div></Panel>;
+ return <Panel><div className="biz-panel-head"><div><h3>Operasional Modul</h3><small>Data operasional mendukung View, Insert, Detail/Update, dan Delete. Aksi diterapkan ke tabel modul aktif dan dibatasi RLS organisasi.</small></div><div className="form-actions"><button className="app-btn" onClick={()=>fire("view")}>View / Daftar</button><button className="app-primary" onClick={()=>fire("insert")}>＋ Insert</button><button className="app-btn" onClick={()=>fire("update")}>Update</button><button className="app-warn" onClick={()=>fire("delete")}>Delete</button></div></div></Panel>
+}
 function ModuleWorkbench({appId,data,organizationId,onRefresh}){
  const configs={
   erp:[
