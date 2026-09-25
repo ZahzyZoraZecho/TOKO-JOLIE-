@@ -159,9 +159,7 @@ export default function BusinessOSEntry() {
         </form>
 
         {mode === "login" && <button type="button" className="bos-store-button" disabled={busy} onClick={resetPassword}><KeyRound size={16}/> Reset password Owner</button>}
-        <div className="bos-security-note"><ShieldCheck size={17}/><span>Akses Business OS diberikan hanya kepada member/staff yang sudah diverifikasi dan diberi role oleh administrator. Akun storefront biasa tidak otomatis memperoleh akses.</span></div>
-
-        <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
+        <div className="bos-security-note"><ShieldCheck size={17}/><span>Akses Business OS diberikan hanya kepada member/staff yang sudah diverifikasi dan diberi role oleh administrator. Supabase RLS tetap memeriksa role sebelum data operasional dibuka; akun storefront biasa tidak otomatis memperoleh akses.</span></div>
         <button className="bos-store-button" onClick={goStorefront}><Store size={16}/> Kembali ke website toko JOLIE</button>
       </div>
     </EntryShell>;
