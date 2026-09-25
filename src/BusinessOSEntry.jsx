@@ -146,21 +146,20 @@ export default function BusinessOSEntry() {
         </div>
 
         <div className="bos-login-icon"><LockKeyhole size={25}/></div>
-        <div className="bos-eyebrow">STAFF ACCESS</div>
-        <h1>{mode === "login" ? "Masuk ke Business OS" : "Daftarkan akun staff pertama"}</h1>
+        <div className="bos-eyebrow">VERIFIED MEMBER ACCESS</div>
+        <h1>Masuk ke Business OS</h1>
         <p className="bos-login-copy">Halaman login operasional ini berdiri sendiri dari website toko JOLIE. Akun pelanggan/storefront tidak otomatis masuk ke Business OS.</p>
 
-        <form onSubmit={mode === "login" ? submitLogin : submitSignup} className="bos-login-form">
+        <form onSubmit={submitLogin} className="bos-login-form">
           <label>Email staff<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="staff@jolie..." autoComplete="username" required /></label>
           <label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required /></label>
           {(mode === "signup" || ownerBootstrap) && <label>Kode bootstrap awal<input type="password" value={setupCode} onChange={e=>setSetupCode(e.target.value)} placeholder="Kode setup owner" autoComplete="off" required /></label>}
           {message && <div className="bos-entry-message">{message}</div>}
-          <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : mode === "login" ? <><LogIn size={16}/> Masuk ke Business OS</> : <><ShieldCheck size={16}/> Buat Owner Business OS</>}</button>
+          <button className="bos-login-button" disabled={busy}>{busy ? "Memproses…" : <><LogIn size={16}/> Masuk ke Business OS</>}</button>
         </form>
 
         {mode === "login" && <button type="button" className="bos-store-button" disabled={busy} onClick={resetPassword}><KeyRound size={16}/> Reset password Owner</button>}
-        <button type="button" className="bos-store-button" onClick={()=>{setMode(mode === "login" ? "signup" : "login");setOwnerBootstrap(false);setSetupCode("");setMessage("");}}>{mode === "login" ? "Belum punya akun staff? Buat akun pertama" : "Sudah punya akun? Kembali ke login"}</button>
-        {mode === "login" && <button type="button" className="bos-store-button" onClick={()=>{setOwnerBootstrap(!ownerBootstrap);setSetupCode("");setMessage("");}}>{ownerBootstrap ? "Batalkan bootstrap owner" : "Saya sudah membuat akun pertama — aktifkan Owner"}</button>}
+        <div className="bos-security-note"><ShieldCheck size={17}/><span>Akses Business OS diberikan hanya kepada member/staff yang sudah diverifikasi dan diberi role oleh administrator. Akun storefront biasa tidak otomatis memperoleh akses.</span></div>
 
         <div className="bos-security-note"><ShieldCheck size={17}/><span>Setelah login, Supabase RLS tetap memeriksa role staff sebelum data operasional dibuka.</span></div>
         <button className="bos-store-button" onClick={goStorefront}><Store size={16}/> Kembali ke website toko JOLIE</button>
