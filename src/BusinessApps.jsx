@@ -37,7 +37,64 @@ const APP_SUBNAV={
  commerce:[["Product Master","./"],["Storefront","../../../TOKO-JOLIE-/"]],
  animals:[["Hewan & Ternak","./#animals"],["Kesehatan","./#health"],["Vaksinasi","./#vaccination"],["Perawatan","./#treatment"],["Bobot","./#weights"],["Reproduksi","./#breeding"],["Pakan","./#feed"],["Produksi","./#production"],["AI Forecasting","./#forecast"],["Laporan","./#reports"]]
 };
-function AppSubnav({appId}){const items=APP_SUBNAV[appId]||[];const [active,setActive]=React.useState(items[0]?.[0]||"");React.useEffect(()=>{setActive(items[0]?.[0]||"")},[appId]);const go=([label,href])=>{setActive(label);window.dispatchEvent(new CustomEvent("jolie-subnav",{detail:{appId,label,href}}));if(href.includes("#")){window.location.hash=href.slice(1);return;}if(href==="."||href==="./"||href===""){return;}const target=href.replace(/^\.\//,"").replace(/\/$/,"");businessGo(target);};const fire=op=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op,label:active}}));const utility={Ringkasan:["view","↻ Refresh"],Overview:["view","↻ Refresh"],"AI Insight":["view","↻ Refresh"],Metrics:["view","↻ Refresh"],Laporan:["view","Cetak / Refresh"],"Finance Ledger":["view","↻ Refresh"],"Buku Besar":["view","↻ Refresh"],Compliance:["view","Sync"],"Google Compliance":["view","Sync"],"Search Metrics":["view","↻ Refresh"]};const isUtility=Boolean(utility[active]);return <nav className="app-subnav" aria-label="Navigasi modul"><div className="app-subnav-items">{items.map(item=><button className={"app-subnav-item"+(active===item[0]?" active":"")} key={item[0]} onClick={()=>go(item)}>{item[0]}</button>)}</div><div className="app-subnav-actions" aria-label="Operasi submenu">{isUtility?<><span className="app-note">{active||"Data"} · operasional</span><button onClick={()=>fire("view")}>{utility[active][1]}</button></>:<><span className="app-note">{active||"Data"} · CRUD</span><button onClick={()=>fire("view")}>Daftar</button><button className="app-primary" onClick={()=>fire("insert")}>＋ Insert</button><button onClick={()=>fire("update")}>Detail / Update</button><button className="app-warn" onClick={()=>fire("delete")}>Delete</button></>}</div></nav>}
+const SUBNAV_OPERATIONS={
+ "Product Master":[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]],
+ "Customer Master":[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]],
+ "Supplier":[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]],
+ "Purchase Order":[["view","Daftar"],["insert","＋ Insert PO"],["update","Detail / Update"],["cancel","Cancel"]],
+ "Order":[["view","Daftar"],["insert","＋ Insert Order"],["update","Detail / Update"],["cancel","Cancel"]],
+ "Transaksi":[["view","Daftar"],["insert","＋ Transaksi"],["update","Detail / Update"],["cancel","Void / Cancel"]],
+ "Persediaan":[["view","Snapshot"],["insert","＋ Terima Stok"],["update","Adjustment"],["delete","Koreksi"]],
+ "Gudang":[["view","Daftar"],["insert","＋ Gudang"],["update","Detail / Update"],["delete","Delete"]],
+ "Payment":[["view","Daftar"],["insert","＋ Payment"],["update","Update Status"],["refund","Refund / Cancel"]],
+ "Finance Ledger":[["view","Refresh"],["export","Export"],["detail","Detail"]],
+ "Daftar Akun":[["view","Daftar"],["insert","＋ Insert Akun"],["update","Detail / Update"],["delete","Delete"]],
+ "Jurnal":[["view","Daftar"],["insert","＋ Jurnal"],["update","Detail / Update"],["delete","Reverse / Void"]],
+ "Piutang":[["view","Daftar"],["insert","＋ Piutang"],["update","Detail / Update"],["delete","Write-off"]],
+ "Hutang":[["view","Daftar"],["insert","＋ Hutang"],["update","Detail / Update"],["delete","Write-off"]],
+ "Pajak":[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]],
+ "Peringatan":[["view","Refresh"],["acknowledge","Akui"],["delete","Arsipkan"]],
+ "Automation":[["view","Refresh"],["insert","＋ Rule"],["update","Detail / Update"],["delete","Disable"]],
+ "Activities":[["view","Daftar"],["insert","＋ Activity"],["update","Detail / Update"],["delete","Delete"]],
+ "Demand & Keyword":[["view","Daftar"],["insert","＋ Keyword"],["update","Detail / Update"],["delete","Delete"]],
+ "Campaigns":[["view","Daftar"],["insert","＋ Campaign"],["update","Detail / Update"],["delete","Delete"]],
+ "Content Queue":[["view","Daftar"],["insert","＋ Content"],["update","Detail / Update"],["delete","Delete"]],
+ "Learning":[["view","Refresh"],["insert","＋ Feedback"],["update","Adjust Rule"],["delete","Archive Rule"]],
+ "Experiments":[["view","Daftar"],["insert","＋ Experiment"],["update","Pause / Resume"],["delete","Delete"]],
+ "Hewan & Ternak":[["view","Daftar"],["insert","＋ Hewan"],["update","Detail / Update"],["delete","Delete"]],
+ "Kesehatan":[["view","Daftar"],["insert","＋ Record"],["update","Detail / Update"],["delete","Delete"]],
+ "Vaksinasi":[["view","Daftar"],["insert","＋ Vaksinasi"],["update","Detail / Update"],["delete","Delete"]],
+ "Perawatan":[["view","Daftar"],["insert","＋ Perawatan"],["update","Detail / Update"],["delete","Delete"]],
+ "Bobot":[["view","Daftar"],["insert","＋ Pengukuran"],["update","Detail / Update"],["delete","Delete"]],
+ "Reproduksi":[["view","Daftar"],["insert","＋ Record"],["update","Detail / Update"],["delete","Delete"]],
+ "Pakan":[["view","Daftar"],["insert","＋ Pemberian"],["update","Detail / Update"],["delete","Delete"]],
+ "Produksi":[["view","Daftar"],["insert","＋ Produksi"],["update","Detail / Update"],["delete","Delete"]],
+ "AI Forecasting":[["view","Refresh"],["insert","＋ Forecast"],["update","Recalculate"],["delete","Archive"]],
+ "Laporan":[["view","↻ Refresh"],["export","Export"],["print","Cetak / PDF"]],
+ "Ringkasan":[["view","↻ Refresh"]],
+ "Overview":[["view","↻ Refresh"]],
+ "AI Insight":[["view","↻ Refresh"],["feedback","Feedback"]],
+ "Metrics":[["view","↻ Refresh"],["export","Export"]],
+ "Compliance":[["view","Sync"],["export","Export Log"]],
+ "Search Metrics":[["view","↻ Refresh"],["export","Export"]],
+ "Buku Besar":[["view","↻ Refresh"],["export","Export"],["detail","Detail"]]
+};
+function AppSubnav({appId}){
+ const items=APP_SUBNAV[appId]||[];
+ const [active,setActive]=React.useState(items[0]?.[0]||"");
+ React.useEffect(()=>setActive(items[0]?.[0]||""),[appId]);
+ const go=([label,href])=>{
+  setActive(label);
+  window.dispatchEvent(new CustomEvent("jolie-subnav",{detail:{appId,label,href}}));
+  if(href.includes("#")){window.location.hash=href.slice(1);return;}
+  if(href==="."||href==="./"||href==="")return;
+  const target=href.replace(/^\.\//,"").replace(/\/$/,"");
+  businessGo(target);
+ };
+ const fire=op=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op,label:active}}));
+ const actions=SUBNAV_OPERATIONS[active]||[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]];
+ return <nav className="app-subnav" aria-label="Navigasi modul"><div className="app-subnav-items">{items.map(item=><button className={"app-subnav-item"+(active===item[0]?" active":"")} key={item[0]} onClick={()=>go(item)}>{item[0]}</button>)}</div><div className="app-subnav-actions" aria-label={"Operasi "+active}><span className="app-note">{active||"Data"} · operational</span>{actions.map(([op,label])=><button key={op} className={op==="insert"||op==="feedback"?"app-primary":op==="delete"||op==="cancel"||op==="refund"?"app-warn":"app-btn"} onClick={()=>fire(op)}>{label}</button>)}</div></nav>
+}
 const ROLE_APPS={owner:APPS.map(x=>x.id),admin:APPS.map(x=>x.id),manager:["erp","pos","warehouse","sales","procurement","finance","accounting","reports","alerts","crm","ai","seo","commerce"],sales:["erp","pos","sales","reports","ai","commerce"],inventory:["erp","warehouse","reports","alerts","ai","commerce"],procurement:["erp","procurement","warehouse","reports","alerts","ai"],finance:["erp","finance","accounting","reports","alerts","ai"],crm:["erp","crm","reports","alerts","ai","commerce"],animals:["erp","animals","reports","alerts","ai","commerce"]};
 function rupiah(v){return new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(v||0));}
 function date(v){return v?new Intl.DateTimeFormat("id-ID",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(v)):"—";}
