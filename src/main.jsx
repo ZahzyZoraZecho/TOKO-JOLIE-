@@ -4,6 +4,7 @@ import App from "./App";
 import BusinessOSEntry from "./BusinessOSEntry";
 import BusinessApps from "./BusinessApps";
 import IntegrationHub from "./IntegrationHub";
+import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
 
 function resolveRoute(pathname) {
