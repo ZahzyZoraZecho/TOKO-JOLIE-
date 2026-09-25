@@ -1,6 +1,6 @@
 import React from "react";
 import { LockKeyhole, LogIn, ShieldCheck, Store, UserRound, KeyRound } from "lucide-react";
-import BusinessOS from "./BusinessOS";
+import BusinessApps from "./BusinessApps";
 import { businessSupabase } from "./lib/supabase";
 
 const ORG_NAME = "JOLIE — Toko Pakan Jolie Gebang";
@@ -185,7 +185,7 @@ export default function BusinessOSEntry() {
     </EntryShell>;
   }
 
-  return <BusinessOS user={session.user} onBack={goStorefront} />;
+  return <BusinessApps appId="launcher" onBack={goStorefront} />;
 }
 
 function EntryShell({ children }) {
