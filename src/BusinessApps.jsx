@@ -2,6 +2,7 @@ import React from "react";
 import { ArrowLeft, Boxes, BrainCircuit, CircleDollarSign, ClipboardList, Database, LayoutDashboard, RefreshCw, ShoppingBag, ShoppingCart, Store, Users, Plus, Minus, ShieldCheck } from "lucide-react";
 import { businessSupabase } from "./lib/supabase";
 
+// JOLIE Business OS: operational CRUD + stable table renderer
 const APPS = [
  {id:"erp",label:"JOLIE ERP",desc:"Command center lintas fungsi",icon:Database},
  {id:"pos",label:"JOLIE POS",desc:"Kasir dan transaksi",icon:ShoppingCart},
@@ -92,6 +93,7 @@ function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launche
  </div>;
 }
 function Panel({children,className=""}){return <section className={"biz-panel "+className}>{children}</section>}
+function Table({heads,rows}){return <div className="table-wrap"><table><thead><tr>{heads.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.length?rows.map((r,i)=><tr key={i}>{r.map((c,j)=><td key={j}>{c}</td>)}</tr>):<tr><td colSpan={heads.length}>Belum ada data.</td></tr>}</tbody></table></div>}
 function businessBase(){const p=window.location.pathname;const i=p.indexOf("/business-os");return i>=0?p.slice(0,i)+"/business-os/":"/business-os/"}
 function businessGo(id){
   const target=businessBase()+String(id||"").replace(/^\/+|\/+$/g,"")+"/";
