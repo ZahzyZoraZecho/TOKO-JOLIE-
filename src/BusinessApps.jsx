@@ -94,7 +94,7 @@ function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launche
 function Panel({children,className=""}){return <section className={"biz-panel "+className}>{children}</section>}
 function businessBase(){const p=window.location.pathname;const i=p.indexOf("/business-os");return i>=0?p.slice(0,i)+"/business-os/":"/business-os/"}
 function businessGo(id){
- const target=businessBase()+String(id||"").replace(/^\\/+|\\/+$/g,"")+"/";
+  const target=businessBase()+String(id||"").replace(/^\/+|\/+$/g,"")+"/";
  if(window.location.pathname!==target){window.history.pushState({}, "", target);}
  window.dispatchEvent(new Event("jolie-route-change"));
 }
