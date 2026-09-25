@@ -89,11 +89,19 @@ function AppSubnav({appId}){
  React.useEffect(()=>setActive(items[0]?.[0]||""),[appId]);
  const go=([label,href])=>{
   setActive(label);
-  window.dispatchEvent(new CustomEvent("jolie-subnav",{detail:{appId,label,href}}));
-  if(href.includes("#")){window.location.hash=href.slice(1);return;}
-  if(href==="."||href==="./"||href==="")return;
+  const detail={appId,label,href};
+  if(href.includes("#")){
+    window.location.hash=href.slice(1);
+    window.dispatchEvent(new CustomEvent("jolie-subnav",{detail}));
+    return;
+  }
+  if(href==="."||href==="./"||href===""){
+    window.dispatchEvent(new CustomEvent("jolie-subnav",{detail}));
+    return;
+  }
   const target=href.replace(/^\.\//,"").replace(/\/$/,"");
   businessGo(target);
+  window.setTimeout(()=>window.dispatchEvent(new CustomEvent("jolie-subnav",{detail})),0);
  };
  const operationTarget={
   "Product Master":"commerce","Customer Master":"crm","Supplier":"procurement","Purchase Order":"procurement","Order":"sales","Transaksi":"pos",
@@ -106,9 +114,19 @@ function AppSubnav({appId}){
  const fire=op=>{
   const target=operationTarget[active];
   const hash=operationHash[active]||"";
-  window.dispatchEvent(new CustomEvent("jolie-operation",{detail:{appId,op,label:active,target}}));
-  if(target&&target!==appId){ businessGo(target); }
-  if(hash){ setTimeout(()=>{ window.location.hash=hash.slice(1); window.dispatchEvent(new Event("jolie-route-change")); },80); }
+  const detail={appId,op,label:active,target};
+  if(target&&target!==appId){
+    businessGo(target);
+    window.setTimeout(()=>window.dispatchEvent(new CustomEvent("jolie-operation",{detail})),0);
+  }else{
+    window.dispatchEvent(new CustomEvent("jolie-operation",{detail}));
+  }
+  if(hash){
+    window.setTimeout(()=>{
+      window.location.hash=hash.slice(1);
+      window.dispatchEvent(new Event("jolie-route-change"));
+    },80);
+  }
  };
  const actions=SUBNAV_OPERATIONS[active]||[["view","Daftar"],["insert","＋ Insert"],["update","Detail / Update"],["delete","Delete"]];
  return <nav className="app-subnav" aria-label="Navigasi modul"><div className="app-subnav-items">{items.map(item=><button className={"app-subnav-item"+(active===item[0]?" active":"")} key={item[0]} onClick={()=>go(item)}>{item[0]}</button>)}</div><div className="app-subnav-actions" aria-label={"Operasi "+active}><span className="app-note">{active||"Data"} · operational</span>{actions.map(([op,label])=><button key={op} className={op==="insert"||op==="feedback"?"app-primary":op==="delete"||op==="cancel"||op==="refund"?"app-warn":"app-btn"} onClick={()=>fire(op)}>{label}</button>)}</div></nav>
