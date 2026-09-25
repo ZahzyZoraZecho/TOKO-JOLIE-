@@ -20,16 +20,16 @@ const APPS = [
 ];
 
 const APP_SUBNAV={
- erp:[["Ringkasan","./"],["POS","./pos/"],["Warehouse","./warehouse/"],["Sales","./sales/"],["Procurement","./procurement/"],["Finance","./finance/"],["Accounting","./accounting/"],["CRM","./crm/"],["AI SEO","./seo/"]],
- pos:[["Transaksi","./#transaksi"],["Product Master","./#product-master"],["Sales","./sales/"]],
- warehouse:[["Persediaan","./"],["Product Master","./commerce/"],["Sales","./sales/"],["Procurement","./procurement/"]],
- sales:[["Order","./"],["Product Master","./#product-master"],["Customer","./crm/"],["Kasir/POS","./pos/"],["Warehouse","./warehouse/"]],
+ erp:[["Ringkasan","./"],["Product Master","./#product-master"],["Customer Master","./#customer-master"],["POS","./pos/"],["Warehouse","./warehouse/"],["Sales","./sales/"],["Procurement","./procurement/"],["Finance","./finance/"],["Accounting","./accounting/"],["CRM","./crm/"],["AI SEO","./seo/"]],
+ pos:[["Transaksi","./#transaksi"],["Product Master","./#product-master"]],
+ warehouse:[["Persediaan","./"],["Gudang","./#gudang"],["Product Master","./commerce/"],["Sales","./sales/"],["Procurement","./procurement/"]],
+ sales:[["Order","./"],["Product Master","./#product-master"],["Customer","./crm/"],["Warehouse","./warehouse/"]],
  procurement:[["Supplier","./"],["Purchase Order","./"],["Warehouse","./warehouse/"]],
- finance:[["Payment","./"],["Accounting","./accounting/"],["Reports","./reports/"]],
- accounting:[["Daftar Akun","./#accounts"],["Jurnal","./#journal"],["Buku Besar","./#ledger"],["Pajak","./#tax"]],
+ finance:[["Payment","./"],["Finance Ledger","./#ledger"],["Accounting","./accounting/"],["Reports","./reports/"]],
+ accounting:[["Piutang","./#receivables"],["Hutang","./#payables"],["Daftar Akun","./#accounts"],["Jurnal","./#journal"],["Buku Besar","./#ledger"],["Pajak","./#tax"]],
  reports:[["Laporan","./"],["Accounting","./accounting/"],["Finance","./finance/"]],
  alerts:[["Peringatan","./"],["Automation","./"],["Reports","./reports/"]],
- crm:[["Customer Master","./"],["Activities","./#activities"],["Sales","./sales/"],["POS","./pos/"]],
+ crm:[["Customer Master","./"],["Activities","./#activities"],["Sales","./sales/"]],
  ai:[["AI Insight","./"],["AI SEO","./seo/"]],
  seo:[["Overview","./#overview"],["Demand & Keyword","./#opportunity"],["Campaigns","./#campaigns"],["Content Queue","./#queue"],["Learning","./#learning"],["Compliance","./#compliance"],["Experiments","./#experiments"],["Metrics","./#metrics"]],
  commerce:[["Product Master","./"],["Storefront","../../../TOKO-JOLIE-/"]]
