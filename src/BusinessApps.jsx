@@ -1,21 +1,21 @@
 import React from "react";
-import { ArrowLeft, Boxes, BrainCircuit, CircleDollarSign, ClipboardList, Database, LayoutDashboard, RefreshCw, ShoppingBag, ShoppingCart, Store, Users, Plus, Minus, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Boxes, BrainCircuit, CircleDollarSign, ClipboardList, Database, LayoutDashboard, RefreshCw, ShoppingBag, ShoppingCart, Store, Users, Plus, Minus, ShieldCheck, SearchCode, WalletCards, FileBarChart, BellRing, UserRoundCog, ReceiptText } from "lucide-react";
 import { businessSupabase } from "./lib/supabase";
 
 // JOLIE Business OS: operational CRUD + stable table renderer
 const APPS = [
- {id:"erp",label:"JOLIE ERP",desc:"Command center lintas fungsi",icon:Database},
+ {id:"erp",label:"JOLIE ERP",desc:"Command center lintas fungsi",icon:LayoutDashboard},
  {id:"pos",label:"JOLIE POS",desc:"Kasir dan transaksi",icon:ShoppingCart},
  {id:"warehouse",label:"JOLIE Warehouse",desc:"Stok, gudang dan mutasi",icon:Boxes},
  {id:"sales",label:"JOLIE Sales",desc:"Order dan fulfillment",icon:ShoppingBag},
  {id:"procurement",label:"JOLIE Procurement",desc:"Supplier dan pengadaan",icon:ClipboardList},
- {id:"finance",label:"JOLIE Finance",desc:"Payment dan ledger",icon:CircleDollarSign},
- {id:"accounting",label:"JOLIE Accounting",desc:"Jurnal, buku besar dan pajak",icon:Database},
- {id:"reports",label:"JOLIE Reports",desc:"Laporan operasional dan keuangan",icon:ClipboardList},
- {id:"alerts",label:"JOLIE Control Center",desc:"Peringatan dan otomasi",icon:ShieldCheck},
- {id:"crm",label:"JOLIE CRM",desc:"Pelanggan dan follow-up",icon:Users},
+ {id:"finance",label:"JOLIE Finance",desc:"Payment dan ledger",icon:WalletCards},
+ {id:"accounting",label:"JOLIE Accounting",desc:"Jurnal, buku besar dan pajak",icon:ReceiptText},
+ {id:"reports",label:"JOLIE Reports",desc:"Laporan operasional dan keuangan",icon:FileBarChart},
+ {id:"alerts",label:"JOLIE Control Center",desc:"Peringatan dan otomasi",icon:BellRing},
+ {id:"crm",label:"JOLIE CRM",desc:"Pelanggan dan follow-up",icon:UserRoundCog},
  {id:"ai",label:"JOLIE AI",desc:"Intelligence lintas aplikasi",icon:BrainCircuit},
- {id:"seo",label:"JOLIE AI SEO",desc:"Demand, opportunity dan campaign",icon:BrainCircuit},
+ {id:"seo",label:"JOLIE AI SEO",desc:"Demand, opportunity dan campaign",icon:SearchCode},
  {id:"commerce",label:"JOLIE Commerce",desc:"Website dan e-commerce",icon:Store}
 ];
 
@@ -135,11 +135,11 @@ function Shell({children,title,access,onBack,onRefresh,refreshing,appId="launche
    <div style={{fontSize:11,fontWeight:800,letterSpacing:".08em",opacity:.55,padding:"0 10px 8px"}}>APPLICATIONS</div>
    {ids.map(id=>{const a=APPS.find(x=>x.id===id);if(!a)return null;const I=a.icon;return <button key={id} onClick={()=>go(id)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px",marginBottom:4,borderRadius:9,border:appId===id?"1px solid #a7cbb6":"1px solid transparent",background:appId===id?"#eaf6ee":"transparent",fontWeight:appId===id?800:600,cursor:"pointer",textAlign:"left"}}><I size={17}/><span>{a.label}</span></button>})}
    <div style={{borderTop:"1px solid #e6ece8",marginTop:14,paddingTop:14}}>
-    <button onClick={()=>go("seo")} style={{width:"100%",display:"flex",alignItems:"center",gap:9,padding:"11px 10px",borderRadius:9,border:"1px solid #8fbd9f",background:"#e6f5eb",fontWeight:800,cursor:"pointer"}}><BrainCircuit size={18}/> JOLIE AI SEO</button>
+    <button onClick={()=>go("seo")} style={{width:"100%",display:"flex",alignItems:"center",gap:9,padding:"11px 10px",borderRadius:9,border:"1px solid #8fbd9f",background:"#e6f5eb",fontWeight:800,cursor:"pointer"}}><SearchCode size={18}/> JOLIE AI SEO</button>
    </div>
   </aside>
   <div style={{minWidth:0}}>
-   <header className="biz-app-top"><div className="biz-app-brand"><div className="biz-app-mark">J</div><div><b>{title}</b><small>{access?.organization_name||"JOLIE"}{access?.role?" · "+access.role:""}</small></div></div><div className="biz-app-actions"><button onClick={onBack}><ArrowLeft size={15}/> Launcher/Login</button>{access?.role&&ROLE_APPS[access.role]?.includes("seo")&&<button className="app-primary" onClick={()=>go("seo")}><BrainCircuit size={15}/> JOLIE AI SEO</button>}{onRefresh&&<button className="app-primary" onClick={onRefresh} disabled={refreshing}><RefreshCw size={15}/> {refreshing?"Sync…":"Sync"}</button>}</div></header>
+   <header className="biz-app-top"><div className="biz-app-brand"><div className="biz-app-mark">J</div><div><b>{title}</b><small>{access?.organization_name||"JOLIE"}{access?.role?" · "+access.role:""}</small></div></div><div className="biz-app-actions"><button onClick={onBack}><ArrowLeft size={15}/> Launcher/Login</button>{access?.role&&ROLE_APPS[access.role]?.includes("seo")&&<button className="app-primary" onClick={()=>go("seo")}><SearchCode size={15}/> JOLIE AI SEO</button>}{onRefresh&&<button className="app-primary" onClick={onRefresh} disabled={refreshing}><RefreshCw size={15}/> {refreshing?"Sync…":"Sync"}</button>}</div></header>
    <main className="biz-app-main">
     {appId!=="launcher"&&<><AppSubnav appId={appId}/><OperationGuide appId={appId}/><ModuleWorkbench appId={appId} data={data} organizationId={organizationId} onRefresh={onRefresh}/></>}
     {children}
