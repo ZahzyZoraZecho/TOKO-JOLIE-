@@ -43,7 +43,7 @@ function Commerce({products,organizationId,onRefresh}){
  const empty={id:null,name:"",slug:"",sku:"",description:"",image_url:"",unit:"pcs",price:"",compare_at_price:"",stock_qty:"0",min_stock_qty:"0",is_active:true,is_featured:false};
  const [form,setForm]=React.useState(empty),[file,setFile]=React.useState(null),[preview,setPreview]=React.useState(""),[msg,setMsg]=React.useState(""),[busy,setBusy]=React.useState(false),[search,setSearch]=React.useState("");
  const slugify=v=>String(v||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
- const reset=()=>{setForm({...empty});setFile(null);setPreview("");setMsg("")};
+ const reset=(keepMessage=false)=>{setForm({...empty});setFile(null);setPreview("");if(!keepMessage)setMsg("")};
  const edit=p=>{setForm({...empty,...p,price:p.price??"",compare_at_price:p.compare_at_price??"",stock_qty:p.stock_qty??0,min_stock_qty:p.min_stock_qty??0});setFile(null);setPreview(p.image_url||"");setMsg("")};
  const chooseFile=e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(jpeg|png|webp)$/.test(f.type))return setMsg("Gunakan JPG, PNG, atau WebP.");if(f.size>5*1024*1024)return setMsg("Ukuran gambar maksimal 5 MB.");setFile(f);setPreview(URL.createObjectURL(f));setMsg("")};
  React.useEffect(()=>()=>{if(preview?.startsWith("blob:"))URL.revokeObjectURL(preview)},[preview]);
