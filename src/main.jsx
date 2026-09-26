@@ -6,6 +6,7 @@ import BusinessApps from "./BusinessApps";
 import IntegrationHub from "./IntegrationHub";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./styles.css";
+import "./jolie-premium.css";
 
 function resolveRoute(pathname) {
   const normalized = pathname.replace(/\/+$/, "");
